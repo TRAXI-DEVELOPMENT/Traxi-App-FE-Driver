@@ -14,6 +14,14 @@ export default function TabLayout() {
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
       }}>
+        <Tabs.Screen
+        name='signin'
+        options={{
+          title: 'Sign In',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused? 'log-in' : 'log-in-outline'} color={color} />
+          ),
+        }}/>
       <Tabs.Screen
         name="index"
         options={{
