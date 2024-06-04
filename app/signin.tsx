@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, ScrollView, ImageBackground, KeyboardAvoidingView, Platform } from 'react-native';
-import { EvilIcons } from '@expo/vector-icons';
 
 export default function Signin() {
   const [username, setUsername] = useState('');
@@ -8,7 +7,7 @@ export default function Signin() {
 
   return (
     <ImageBackground
-      source={require('../../assets/images/bg_login.png')}
+      source={require('../assets/images/bg_login.png')}
       style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -16,7 +15,7 @@ export default function Signin() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}>
         <ScrollView contentContainerStyle={styles.scrollViewContainer}>
           <View style={styles.inputContainer}>
-            <EvilIcons name="user" style={styles.icon} />
+            {/* <EvilIcons name="user" style={styles.icon} /> */}
             <TextInput
               style={styles.input}
               placeholder="Tên đăng nhập"
@@ -25,7 +24,7 @@ export default function Signin() {
             />
           </View>
           <View style={styles.inputContainer}>
-            <EvilIcons name="lock" style={styles.icon} />
+            {/* <EvilIcons name="lock" style={styles.icon} /> */}
             <TextInput
               style={styles.input}
               placeholder="Mật khẩu"
@@ -83,6 +82,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Averta',
     backgroundColor: 'rgba(255, 255, 255, 0.7)',
     padding: 15,
+    marginTop: 10,
     marginBottom: 10,
     borderRadius: 20,
     borderBottomWidth: 1,
