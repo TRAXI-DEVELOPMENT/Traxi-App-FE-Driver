@@ -7,7 +7,7 @@ export default function Signin() {
 
   return (
     <ImageBackground
-      source={require('../assets/images/bg_login.png')}
+      source={require('../../assets/images/bg_login.png')}
       style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -18,7 +18,7 @@ export default function Signin() {
             {/* <EvilIcons name="user" style={styles.icon} /> */}
             <TextInput
               style={styles.input}
-              placeholder="Tên đăng nhập"
+              placeholder="Số điện thoại"
               value={username}
               onChangeText={setUsername}
             />

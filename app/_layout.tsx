@@ -14,7 +14,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    Averta: require('../assets/fonts/Averta Cyrillic ExtraBold.otf')
+    Averta: require('../assets/fonts/Averta Cyrillic ExtraBold.otf'),
+    AvertaRegular: require('../assets/fonts/Averta-Regular.otf')
   });
 
   useEffect(() => {
