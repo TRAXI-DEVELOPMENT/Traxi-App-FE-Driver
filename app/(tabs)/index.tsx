@@ -54,7 +54,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               disabled={!isEnabled}
               onPress={() => isEnabled && console.log("Đi tỉnh")}
-              style={[styles.square, !isEnabled && styles.disabledSquare]}
+              style={[ !isEnabled && styles.disabledSquare]}
             >
               <View style={styles.square}>
                 <Image
@@ -67,7 +67,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               disabled={!isEnabled}
               onPress={() => isEnabled && console.log("Nội Thành")}
-              style={[styles.square, !isEnabled && styles.disabledSquare]}
+              style={[!isEnabled && styles.disabledSquare]}
             >
               <View style={styles.square}>
                 <Image
@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
   squareContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
+    alignItems: "center",
     marginBottom: 10,
   },
   square: {
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     height: 100,
   },
   disabledSquare: {
-    opacity: 0.1,
+    opacity: 0.5,
   },
   squareText: {
     fontFamily: "Averta",
