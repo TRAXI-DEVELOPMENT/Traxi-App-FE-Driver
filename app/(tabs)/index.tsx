@@ -33,6 +33,10 @@ export default function HomeScreen() {
     setModalVisible(false);
   };
 
+  const handleViewAllPress = () => {
+    console.log("Xem tất cả pressed");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -54,7 +58,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               disabled={!isEnabled}
               onPress={() => isEnabled && console.log("Đi tỉnh")}
-              style={[ !isEnabled && styles.disabledSquare]}
+              style={[!isEnabled && styles.disabledSquare]}
             >
               <View style={styles.square}>
                 <Image
@@ -98,7 +102,12 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.historySection}>
-        <Text style={styles.historyTitle}>Lịch sử cuốc đã nhận</Text>
+        <View style={styles.historyHeader}>
+          <Text style={styles.historyTitle}>Lịch sử cuốc đã nhận</Text>
+          <TouchableOpacity onPress={handleViewAllPress}>
+            <Text style={styles.viewAllText}>Xem tất cả</Text>
+          </TouchableOpacity>
+        </View>
         <ScrollView style={styles.scrollView}>
           <View style={styles.historyItem}>
             <Text style={styles.customerName}>Tên Khách hàng</Text>
@@ -143,7 +152,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#44C7F7",
+    backgroundColor: "#12aae2",
+    flex: 1,
   },
   header: {
     marginTop: 40,
@@ -265,10 +275,21 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     padding: 19,
   },
+  historyHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   historyTitle: {
     fontFamily: "Averta",
     fontSize: 20,
     marginBottom: 10,
+  },
+  viewAllText: {
+    marginBottom : 10,
+    fontFamily: "Averta",
+    fontSize: 16,
+    color: "#12aae2",
   },
   historyItem: {
     padding: 10,
@@ -300,8 +321,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {
-    width: 0,
-    height: 2,
+      width: 0,
+      height: 2,
     },
     shadowOpacity: 0.25,
     shadowRadius: 4,
@@ -322,7 +343,6 @@ const styles = StyleSheet.create({
   },
   openButton: {
     backgroundColor: "white",
-
     borderRadius: 20,
     padding: 10,
   },
