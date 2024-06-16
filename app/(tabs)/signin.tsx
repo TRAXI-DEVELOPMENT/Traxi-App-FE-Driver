@@ -1,3 +1,4 @@
+import { loginDriver } from "@/api/Auth/Auth";
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -11,7 +12,15 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { loginDriver } from "../api/Auth/Auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+interface AxiosError extends Error {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 export default function Signin() {
   const [phone, setPhone] = useState("");
@@ -21,18 +30,19 @@ export default function Signin() {
     try {
       const response = await loginDriver(phone, password);
       Alert.alert("Đăng nhập thành công", `Token: ${response.token}`);
+      await AsyncStorage.setItem("userToken", response.token);
+      await AsyncStorage.setItem("refreshToken", response.refreshToken);
     } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert("Đăng nhập thất bại", error.message);
-      } else {
-        Alert.alert("Đăng nhập thất bại", "Đã xảy ra lỗi không xác định");
-      }
+      const axiosError = error as AxiosError;
+      const errorMessage =
+        axiosError.response?.data?.message || axiosError.message;
+      Alert.alert("Lỗi đăng nhập", errorMessage);
     }
   };
 
   return (
     <ImageBackground
-      source={require("../assets/images/bg_login.png")}
+      source={require("../../assets/images/bg_login.png")}
       style={styles.container}
     >
       <KeyboardAvoidingView
@@ -44,9 +54,10 @@ export default function Signin() {
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              placeholder="Tên đăng nhập"
+              placeholder="Số điện thoại"
               value={phone}
               onChangeText={setPhone}
+              keyboardType="phone-pad"
             />
           </View>
           <View style={styles.inputContainer}>
@@ -90,11 +101,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "flex-end",
     alignItems: "center",
-  },
-  icon: {
-    fontSize: 40,
-    color: "#12aae2",
-    marginBottom: -12,
   },
   inputContainer: {
     flexDirection: "row",
