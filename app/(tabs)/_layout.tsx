@@ -27,7 +27,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="signin"
+        name="history"
         options={{
           title: "Explore",
           tabBarIcon: ({ color, focused }) => (

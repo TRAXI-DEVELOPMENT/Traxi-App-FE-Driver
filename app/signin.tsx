@@ -1,4 +1,3 @@
-import { loginDriver } from "@/api/Auth/Auth";
 import React, { useState } from "react";
 import {
   StyleSheet,
@@ -12,7 +11,8 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import useAuth from "@/hooks/useAuth";
+import { Redirect } from "expo-router";
 
 interface AxiosError extends Error {
   response?: {
@@ -25,13 +25,13 @@ interface AxiosError extends Error {
 export default function Signin() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const [redirectToSignup, setRedirectToSignup] = useState(false);
 
   const handleLogin = async () => {
     try {
-      const response = await loginDriver(phone, password);
-      Alert.alert("Đăng nhập thành công", `Token: ${response.token}`);
-      await AsyncStorage.setItem("userToken", response.token);
-      await AsyncStorage.setItem("refreshToken", response.refreshToken);
+      await login(phone, password);
+      Alert.alert("Đăng nhập thành công", `Token: `);
     } catch (error) {
       const axiosError = error as AxiosError;
       const errorMessage =
@@ -40,9 +40,13 @@ export default function Signin() {
     }
   };
 
+  if (redirectToSignup) {
+    return <Redirect href="/signup" />;
+  }
+
   return (
     <ImageBackground
-      source={require("../../assets/images/bg_login.png")}
+      source={require("../assets/images/bg_login.png")}
       style={styles.container}
     >
       <KeyboardAvoidingView
@@ -71,7 +75,7 @@ export default function Signin() {
           </View>
           <View style={styles.newDriverTextContainer}>
             <Text style={styles.newDriverText}>Bạn là tài xế mới?</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setRedirectToSignup(true)}>
               <Text style={styles.registerText}>Đăng kí</Text>
             </TouchableOpacity>
           </View>
