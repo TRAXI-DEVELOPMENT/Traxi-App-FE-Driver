@@ -9,6 +9,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
 export default function History() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRide, setSelectedRide] = useState(null);
