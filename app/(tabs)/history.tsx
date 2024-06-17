@@ -8,7 +8,7 @@ import {
   Modal,
   ImageBackground,
 } from "react-native";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function History() {
   const [modalVisible, setModalVisible] = useState(false);

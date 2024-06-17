@@ -8,7 +8,7 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from "react-native";
-import { RNCamera } from 'react-native-camera';
+import { RNCamera } from "react-native-camera";
 
 export default function Signup() {
   const [step, setStep] = useState(1);
@@ -40,7 +40,7 @@ export default function Signup() {
       )}
       {step === 1 && (
         <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
+          source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
@@ -59,7 +59,7 @@ export default function Signup() {
 
       {step === 2 && (
         <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
+          source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
@@ -90,7 +90,7 @@ export default function Signup() {
 
       {step === 3 && (
         <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
+          source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
@@ -106,7 +106,7 @@ export default function Signup() {
 
       {step === 4 && (
         <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
+          source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
@@ -120,7 +120,7 @@ export default function Signup() {
 
       {step === 5 && (
         <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
+          source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
@@ -141,7 +141,7 @@ export default function Signup() {
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                /* Xử lý đăng ký */
+                
               }}
             >
               <Text style={styles.buttonText}>Hoàn tất</Text>
