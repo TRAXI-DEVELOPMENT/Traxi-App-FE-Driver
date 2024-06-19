@@ -79,92 +79,92 @@ export default function History() {
 
   return (
     <ScrollView style={styles.container}>
-        <ImageBackground
-          source={require("../../assets/images/bg_register.png")}
-          style={styles.bgContainer}
-        >
-      <Text style={styles.header}>Lịch sử chuyến</Text>
-      {rides.map((ride) => (
-        <TouchableOpacity
-          key={ride.id}
-          style={styles.card}
-          onPress={() => handleCardPress(ride)}
-        >
-          <View style={styles.cardContent}>
-            <View>
-              <Text style={styles.name}>{ride.name}</Text>
-              <Text style={styles.detail}>
-                <Ionicons name="location" size={12} color="red" />
-                {"  "}
-                {ride.from}
-              </Text>
-              <Text style={styles.detail}>
-                <Ionicons name="locate-outline" size={12} color="blue" />
-                {"  "}
-                {ride.to}
-              </Text>
-              <Text style={styles.detail}>{ride.code}</Text>
+      <ImageBackground
+        source={require("../../assets/images/bg_register.png")}
+        style={styles.bgContainer}
+      >
+        <Text style={styles.header}>Lịch sử chuyến</Text>
+        {rides.map((ride) => (
+          <TouchableOpacity
+            key={ride.id}
+            style={styles.card}
+            onPress={() => handleCardPress(ride)}
+          >
+            <View style={styles.cardContent}>
+              <View>
+                <Text style={styles.name}>{ride.name}</Text>
+                <Text style={styles.detail}>
+                  <Ionicons name="location" size={12} color="red" />
+                  {"  "}
+                  {ride.from}
+                </Text>
+                <Text style={styles.detail}>
+                  <Ionicons name="locate-outline" size={12} color="blue" />
+                  {"  "}
+                  {ride.to}
+                </Text>
+                <Text style={styles.detail}>{ride.code}</Text>
+              </View>
+              <Text style={styles.amount}>Tổng tiền: {ride.amount}</Text>
             </View>
-            <Text style={styles.amount}>Tổng tiền: {ride.amount}</Text>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))}
 
-      {selectedRide && (
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalView}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Ionicons name="close" size={24} color="black" />
-              </TouchableOpacity>
-              <Text style={styles.modalText}>{selectedRide.code}</Text>
-              <Text style={styles.name}>{`${selectedRide.name}`}</Text>
-              <View style={styles.detailRoad}>
-                <Text style={styles.detail}>
-                  <Ionicons name="location" size={13} color="red" />{" "}
-                  {`${selectedRide.from}`}
-                </Text>
-                <Text style={styles.detail}>
-                  <Ionicons name="locate-outline" size={13} color="blue" />{" "}
-                  {`${selectedRide.to}`}
-                </Text>
+        {selectedRide && (
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              setModalVisible(!modalVisible);
+            }}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalView}>
+                <TouchableOpacity
+                  style={styles.closeButton}
+                  onPress={() => setModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="black" />
+                </TouchableOpacity>
+                <Text style={styles.modalText}>{selectedRide.code}</Text>
+                <Text style={styles.name}>{`${selectedRide.name}`}</Text>
+                <View style={styles.detailRoad}>
+                  <Text style={styles.detail}>
+                    <Ionicons name="location" size={13} color="red" />{" "}
+                    {`${selectedRide.from}`}
+                  </Text>
+                  <Text style={styles.detail}>
+                    <Ionicons name="locate-outline" size={13} color="blue" />{" "}
+                    {`${selectedRide.to}`}
+                  </Text>
+                </View>
+                <View style={styles.detailTime}>
+                  <Text style={styles.detail}>
+                    <Ionicons
+                      name="time"
+                      size={13}
+                      color="black"
+                      style={styles.icon}
+                    />{" "}
+                    {`Bắt đầu:  ${selectedRide.start}`}
+                  </Text>
+                  <Text style={styles.detail}>
+                    {"     "}
+                    {`Kết thúc: ${selectedRide.end}`}
+                  </Text>
+                  <Text style={styles.detail}>
+                    <Ionicons name="alarm" size={14} color="black" />{" "}
+                    {`Tổng thời gian đi: ${selectedRide.time}`}
+                  </Text>
+                </View>
+                <Text
+                  style={styles.amount}
+                >{`Tổng tiền: ${selectedRide.amount}`}</Text>
               </View>
-              <View style={styles.detailTime}>
-              <Text style={styles.detail}>
-                <Ionicons
-                  name="time"
-                  size={13}
-                  color="black"
-                  style={styles.icon}
-                />{" "}
-                {`Bắt đầu:  ${selectedRide.start}`}
-              </Text>
-              <Text style={styles.detail}>
-                {"     "}
-                {`Kết thúc: ${selectedRide.end}`}
-              </Text>
-              <Text style={styles.detail}>
-                <Ionicons name="alarm" size={14} color="black" />{" "}
-                {`Tổng thời gian đi: ${selectedRide.time}`}
-              </Text>
-              </View>
-              <Text
-                style={styles.amount}
-              >{`Tổng tiền: ${selectedRide.amount}`}</Text>
             </View>
-          </View>
-        </Modal>
-      )}
+          </Modal>
+        )}
       </ImageBackground>
     </ScrollView>
   );
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     flex: 1,
     padding: 20,
-    backgroundColor: "#e1fffe"
+    backgroundColor: "#e1fffe",
   },
   bgContainer: {
     backgroundColor: "#e1fffe",
@@ -207,11 +207,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 5,
   },
-  detailRoad:{
+  detailRoad: {
     marginTop: 10,
     marginBottom: 15,
   },
-  detailTime:{
+  detailTime: {
     marginTop: 10,
     marginBottom: 15,
   },
