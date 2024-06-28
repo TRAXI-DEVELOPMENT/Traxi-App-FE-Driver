@@ -10,6 +10,18 @@ export const getDriverProfile = async (driverId: string) => {
   }
 };
 
+export const changeAvatar = async (driverId: string, imageUrl: string) => {
+  try {
+    const response = await axiosInstance.patch("/driver/change-avatar", {
+      DriverId: driverId,
+      ImageUrl: imageUrl,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi thay đổi avatar:", error);
+    throw error;
+  }
+};
 
 // Lưu Code ProfileDriverPage
 

@@ -63,6 +63,7 @@ const JWTReducer = (state: State, action: Action): State => {
         isAuthenticated: false,
         user: null,
         role: null,
+        
       };
     default:
       return state;
