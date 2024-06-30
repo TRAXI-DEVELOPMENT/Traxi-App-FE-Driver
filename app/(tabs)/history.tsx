@@ -12,7 +12,7 @@ import {
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { getTripDriver, getTripDetail } from "@/api/Trip/Trip";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Trip, TripDetail } from "@/types/Trip";
+import { Trip, TripDetails } from "@/types/Trip";
 import {
   formatCurrency,
   formatTime,
@@ -21,11 +21,11 @@ import {
 
 export default function History() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRide, setSelectedRide] = useState<TripDetail | null>(null);
+  const [selectedRide, setSelectedRide] = useState<TripDetails | null>(null);
   const [rides, setRides] = useState<Trip[]>([]);
-  const [rideDetails, setRideDetails] = useState<{ [key: string]: TripDetail }>(
-    {}
-  );
+  const [rideDetails, setRideDetails] = useState<{
+    [key: string]: TripDetails;
+  }>({});
 
   useEffect(() => {
     const fetchTripHistory = async () => {

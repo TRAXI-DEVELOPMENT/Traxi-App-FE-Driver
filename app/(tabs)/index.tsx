@@ -11,10 +11,15 @@ import {
   TouchableHighlight,
 } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
+  const goToInnerCity = () => {
+    router.push("/InnerCity");
+  };
 
   const toggleSwitch = () => {
     if (isEnabled) {
@@ -70,7 +75,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               disabled={!isEnabled}
-              onPress={() => isEnabled && console.log("Nội Thành")}
+              onPress={() => isEnabled && goToInnerCity()}
               style={[!isEnabled && styles.disabledSquare]}
             >
               <View style={styles.square}>
@@ -156,7 +161,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    marginTop: 40,
+    marginTop: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -286,7 +291,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   viewAllText: {
-    marginBottom : 10,
+    marginBottom: 10,
     fontFamily: "Averta",
     fontSize: 16,
     color: "#12aae2",

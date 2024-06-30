@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Pressable,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDriverProfile, changeAvatar } from "@/api/Driver/Driver";
@@ -14,6 +15,7 @@ import { DriverProfile as DriverProfileType } from "@/types/Driver";
 import { FontAwesome } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "@/api/Upload/UpLoadImage";
+import { useRouter } from "expo-router";
 
 export default function DriverProfile() {
   const [driverProfile, setDriverProfile] = useState<DriverProfileType | null>(
@@ -21,6 +23,10 @@ export default function DriverProfile() {
   );
   const [userExists, setUserExists] = useState(true);
   const { logout } = useAuth();
+  const router = useRouter();
+  const goToProfile = () => {
+    router.push("/(tabs)/profile/DriverProfileDetail");
+  };
 
   useEffect(() => {
     const checkUserInfo = async () => {
@@ -98,7 +104,6 @@ export default function DriverProfile() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Thông tin cá nhân</Text>
       <TouchableOpacity>
         {driverProfile && (
           <View style={styles.profileHeader}>
@@ -120,10 +125,10 @@ export default function DriverProfile() {
         )}
       </TouchableOpacity>
       <View style={styles.profileOptions}>
-        <TouchableOpacity style={styles.optionItem}>
+        <Pressable onPress={goToProfile} style={styles.optionItem}>
           <FontAwesome name="address-card" size={17} color="#12aae2" />
           <Text style={styles.optionText}>Hồ sơ người dùng</Text>
-        </TouchableOpacity>
+        </Pressable>
         <TouchableOpacity style={styles.optionItem}>
           <FontAwesome name="support" size={17} color="#12aae2" />
           <Text style={styles.optionText}>Trợ giúp</Text>
@@ -144,12 +149,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     padding: 20,
   },
-  header: {
-    fontSize: 26,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#333",
-  },
   profileHeader: {
     flexDirection: "row",
     backgroundColor: "#12aae2",
@@ -161,24 +160,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
+    alignItems: "center", // Align items vertically centered
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginRight: 20,
+    marginRight: 10, // Adjusted margin
     backgroundColor: "#fff",
   },
   editIcon: {
-    position: "absolute",
-    bottom: 46,
-    right: 220,
     borderRadius: 20,
     padding: 5,
+    marginRight: 10, // Adjusted margin
   },
   profileInfo: {
     justifyContent: "center",
-    marginLeft: 30,
+    marginLeft: 10, // Adjusted margin
   },
   profileName: {
     fontSize: 20,
