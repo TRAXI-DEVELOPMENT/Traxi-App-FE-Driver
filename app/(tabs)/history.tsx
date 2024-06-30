@@ -70,48 +70,62 @@ export default function History() {
         source={require("../../assets/images/bg_register.png")}
         style={styles.bgContainer}
       >
-        <Text style={styles.header}>Lịch sử chuyến</Text>
+        <Text style={styles.header}>Lịch sử cuốc</Text>
         {rides.length > 0 ? (
-          rides.map((ride) => (
+          rides.map((ride, index) => (
             <TouchableOpacity
               key={ride.Id}
               style={styles.card}
               onPress={() => handleCardPress(ride)}
             >
               <View style={styles.cardContent}>
-                {rideDetails[ride.Id]?.TripDetail?.Vehicle?.ImgURL && (
-                  <View style={styles.vehicleContainer}>
-                    <Image
-                      source={{
-                        uri:
-                          rideDetails[ride.Id]?.TripDetail?.Vehicle?.ImgURL ||
-                          "https://img.upanh.tv/2024/03/09/vecteezy_car-icon-car-icon-vector-car-icon-simple-sign_5576332.jpg",
-                      }}
-                      style={styles.vehicleImage}
-                    />
-                    <Text style={styles.vehicleMode}>
-                      {rideDetails[ride.Id]?.TripDetail?.Vehicle?.Mode || "N/A"}
-                    </Text>
-                  </View>
-                )}
+                <View style={styles.vehicleContainer}>
+                  <Image
+                    source={{
+                      uri:
+                        rideDetails[ride.Id]?.TripDetail?.Vehicle?.ImgURL ||
+                        "https://img.upanh.tv/2024/03/09/vecteezy_car-icon-car-icon-vector-car-icon-simple-sign_5576332.jpg",
+                    }}
+                    style={styles.vehicleImage}
+                  />
+                  <Text style={styles.vehicleMode}>
+                    {rideDetails[ride.Id]?.TripDetail?.Vehicle?.Mode || "N/A"}
+                  </Text>
+                </View>
                 <View style={styles.cardText}>
                   <Text style={styles.bookingDate}>
                     {formatTime(ride.BookingDate)}
                   </Text>
-                  <Text style={styles.price} numberOfLines={1} ellipsizeMode="tail">
+                </View>
+                <View style={styles.cardText}>
+                  <Text style={styles.price}>
                     {rideDetails[ride.Id]
                       ? formatCurrency(
                           rideDetails[ride.Id].TripDetail.TotalPrice
                         )
                       : "N/A"}
                   </Text>
+                  <Text
+                    style={[
+                      styles.status,
+                      {
+                        color:
+                          ride.Status === "Driving"
+                            ? "orange"
+                            : ride.Status === "Finished"
+                            ? "green"
+                            : "#555",
+                      },
+                    ]}
+                  >
+                    {ride.Status}
+                  </Text>
                 </View>
-                <Text style={styles.status}>{ride.Status}</Text>
               </View>
             </TouchableOpacity>
           ))
         ) : (
-          <Text>Không có lịch sử chuyến đi</Text>
+          <Text>Chưa có cuốc xe nào</Text>
         )}
 
         {selectedRide && (
@@ -132,46 +146,97 @@ export default function History() {
                   <Ionicons name="close" size={24} color="black" />
                 </TouchableOpacity>
                 <Text style={styles.modalText}>Thông tin chuyến đi</Text>
-                <View style={styles.detailRoad}>
-                  <Text style={styles.detail}>
-                    <Ionicons name="location" size={13} color="red" />
-                    {`${selectedRide.TripDetail.StartLocation}`}
-                  </Text>
-                  <Text style={styles.detail}>
-                    <FontAwesome name="location-arrow" size={13} color="blue" />
-                    {`${selectedRide.TripDetail.EndLocation}`}
-                  </Text>
-                </View>
-                <Text style={styles.detail}>
-                  <Ionicons name="alarm" size={14} color="black" />
-                  {`Lộ trình: ${roundToFirstDecimal(
-                    selectedRide.TripDetail.Distance
-                  )} km`}
-                </Text>
-                <View style={styles.detailTime}>
-                  <Text style={styles.detail}>
+
+                <View style={styles.detailRoadContainer}>
+                  <View style={styles.detailRoad}>
+                    <Ionicons
+                      name="location"
+                      size={20}
+                      color="#FF6347"
+                      style={styles.icon}
+                    />
+                    <View style={styles.detailTextContainerColumn}>
+                      <Text style={styles.headTextColumn}>Khởi hành:</Text>
+                      <Text
+                        style={styles.detailTextColumn}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {selectedRide.TripDetail.StartLocation}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailRoad}>
+                    <FontAwesome
+                      name="location-arrow"
+                      size={20}
+                      color="#1E90FF"
+                      style={styles.icon}
+                    />
+                    <View style={styles.detailTextContainerColumn}>
+                      <Text style={styles.headTextColumn}>Điểm đến:</Text>
+                      <Text
+                        style={styles.detailTextColumn}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {selectedRide.TripDetail.EndLocation}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.divider} />
+
+                  <View style={styles.detailRoad}>
+                    <FontAwesome
+                      name="road"
+                      size={20}
+                      color="#32CD32"
+                      style={styles.icon}
+                    />
+                    <View style={styles.detailTextContainerRow}>
+                      <Text style={styles.headTextRow}>Lộ trình:</Text>
+                      <Text
+                        style={styles.detailTextRow}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >{`${roundToFirstDecimal(
+                        selectedRide.TripDetail.Distance
+                      )} km`}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.detailRoad}>
                     <Ionicons
                       name="time"
-                      size={13}
+                      size={20}
                       color="black"
                       style={styles.icon}
                     />
-                    {`Bắt đầu:  ${formatTime(
-                      selectedRide.TripDetail.StartTime
-                    )}`}
-                  </Text>
-                  <Text style={styles.detail}>
-                    {`Kết thúc: ${formatTime(selectedRide.TripDetail.EndTime)}`}
+                    <View style={styles.detailTextContainerRow}>
+                      <Text style={styles.headTextRow}>Thời gian:</Text>
+                      <Text
+                        style={styles.detailTextRow}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {formatTime(selectedRide.TripDetail.StartTime)}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.amountContainer}>
+                  <Text style={styles.amountTitleBold}>Tổng thu:</Text>
+                  <Text style={styles.amountValueBold}>
+                    {formatCurrency(selectedRide.TripDetail.TotalPrice)}
                   </Text>
                 </View>
-                <Text
-                  style={styles.amount}
-                >{`Tổng thu khách hàng: ${formatCurrency(
-                  selectedRide.TripDetail.TotalPrice
-                )}`}</Text>
-                <Text
-                  style={styles.amount}
-                >{`Phương thức thanh toán: Tiền mặt`}</Text>
+                <View style={styles.amountContainer}>
+                  <Text style={styles.amountTitle}>Thanh toán:</Text>
+                  <Text style={styles.amountValue}>Tiền mặt</Text>
+                </View>
               </View>
             </View>
           </Modal>
@@ -213,10 +278,10 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
   },
   vehicleContainer: {
+    flexDirection: "column",
     alignItems: "center",
   },
   vehicleImage: {
@@ -230,52 +295,123 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   cardText: {
-    marginLeft: 10,
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: "column",
   },
   bookingDate: {
     fontFamily: "Averta",
     fontSize: 14,
-    alignSelf: "flex-start",
+    marginBottom: 60,
     color: "#555",
+    alignSelf: "flex-end",
   },
   price: {
     fontFamily: "Averta",
     fontSize: 14,
     color: "#555",
-    flexShrink: 1,
-    textAlign: "right",
+    marginTop: 3,
+    marginBottom: 40,
+    alignSelf: "flex-end",
   },
   status: {
-    fontFamily: "Averta",
     fontSize: 14,
+    fontFamily: "Averta",
     marginBottom: 3,
     alignSelf: "flex-end",
     color: "#555",
   },
+  detailRoadContainer: {
+    marginVertical: 15,
+    paddingHorizontal: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 10,
+    padding: 10,
+    width: "100%",
+  },
   detailRoad: {
-    marginTop: 10,
-    marginBottom: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  divider: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+    borderStyle: "dashed",
+    marginVertical: 10,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  detailTextContainerColumn: {
+    flex: 1,
+    flexDirection: "column",
+  },
+  headTextColumn: {
+    fontFamily: "Averta",
+    fontSize: 14,
+    color: "#333",
+  },
+  detailTextColumn: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
+  },
+  detailTextContainerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "space-between",
+  },
+  headTextRow: {
+    fontFamily: "Averta",
+    fontSize: 14,
+    color: "#333",
+  },
+  detailTextRow: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
+    textAlign: "right",
   },
   detailTime: {
     marginTop: 10,
     marginBottom: 15,
   },
-  detail: {
-    fontFamily: "AvertaRegular",
-    fontSize: 14,
-    marginBottom: 3,
-    color: "#555",
+  amountContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 5,
+    width: "100%",
   },
-  amount: {
+  amountTitleBold: {
     fontFamily: "Averta",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
-    alignSelf: "flex-end",
     color: "#333",
+    flex: 1,
+  },
+  amountValueBold: {
+    fontFamily: "Averta",
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
+    textAlign: "right",
+    flex: 1,
+  },
+  amountTitle: {
+    fontFamily: "Averta",
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
+    flex: 1,
+  },
+  amountValue: {
+    fontFamily: "Averta",
+    fontSize: 14,
+    color: "#555",
+    textAlign: "right",
+    flex: 1,
   },
   modalOverlay: {
     flex: 1,
@@ -309,8 +445,5 @@ const styles = StyleSheet.create({
     fontFamily: "Averta",
     fontSize: 26,
     color: "#333",
-  },
-  icon: {
-    marginTop: 5,
   },
 });
