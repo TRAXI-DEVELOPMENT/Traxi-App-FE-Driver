@@ -17,6 +17,7 @@ export default function HomeScreen() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+
   const goToInnerCity = () => {
     router.push("/InnerCity");
   };

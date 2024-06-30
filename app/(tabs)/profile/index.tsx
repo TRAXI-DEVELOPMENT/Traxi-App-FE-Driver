@@ -13,9 +13,9 @@ import { getDriverProfile, changeAvatar } from "@/api/Driver/Driver";
 import useAuth from "@/hooks/useAuth";
 import { DriverProfile as DriverProfileType } from "@/types/Driver";
 import { FontAwesome } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "@/api/Upload/UpLoadImage";
 import { useRouter } from "expo-router";
+import { useNavigation } from "@react-navigation/native";
 
 export default function DriverProfile() {
   const [driverProfile, setDriverProfile] = useState<DriverProfileType | null>(
@@ -23,12 +23,16 @@ export default function DriverProfile() {
   );
   const [userExists, setUserExists] = useState(true);
   const { logout } = useAuth();
+  const navigation = useNavigation();
+
   const router = useRouter();
   const goToProfile = () => {
     router.push("/(tabs)/profile/DriverProfileDetail");
   };
 
   useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+
     const checkUserInfo = async () => {
       const userInfo = await AsyncStorage.getItem("USER_INFO");
       const driverInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -51,48 +55,7 @@ export default function DriverProfile() {
     };
 
     checkUserInfo();
-  }, []);
-
-  const handleEditAvatar = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission to access camera roll is required!");
-      return;
-    }
-
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (
-      !pickerResult.canceled &&
-      pickerResult.assets &&
-      pickerResult.assets.length > 0
-    ) {
-      const { uri } = pickerResult.assets[0];
-      try {
-        const uploadResponse = await uploadImage(uri);
-        console.log("Upload response:", uploadResponse);
-
-        if (driverProfile) {
-          const changeAvatarResponse = await changeAvatar(
-            driverProfile.Id,
-            uploadResponse.link_img
-          );
-          console.log("Change avatar response:", changeAvatarResponse);
-
-          setDriverProfile(changeAvatarResponse.result);
-        }
-      } catch (error) {
-        console.error("Lỗi khi thay đổi avatar:", error);
-      }
-    }
-  };
+  }, [navigation]);
 
   if (!userExists) {
     return (
@@ -103,55 +66,59 @@ export default function DriverProfile() {
   }
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity>
+    <View style={styles.outerContainer}>
+      <View style={styles.profileHeader}>
         {driverProfile && (
-          <View style={styles.profileHeader}>
+          <View style={{ flexDirection: "row" }}>
             <Image
               source={{ uri: driverProfile.ImageUrl }}
               style={styles.avatar}
             />
-            <TouchableOpacity
-              style={styles.editIcon}
-              onPress={handleEditAvatar}
-            >
-              <FontAwesome name="edit" size={17} color="white" />
-            </TouchableOpacity>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{driverProfile.FullName}</Text>
               <Text style={styles.profilePhone}>{driverProfile.Phone}</Text>
             </View>
           </View>
         )}
-      </TouchableOpacity>
-      <View style={styles.profileOptions}>
-        <Pressable onPress={goToProfile} style={styles.optionItem}>
-          <FontAwesome name="address-card" size={17} color="#12aae2" />
-          <Text style={styles.optionText}>Hồ sơ người dùng</Text>
-        </Pressable>
-        <TouchableOpacity style={styles.optionItem}>
-          <FontAwesome name="support" size={17} color="#12aae2" />
-          <Text style={styles.optionText}>Trợ giúp</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.optionItem} onPress={logout}>
-          <FontAwesome name="sign-out" size={17} color="#12aae2" />
-          <Text style={styles.optionText}>Đăng xuất</Text>
-        </TouchableOpacity>
+      </View>
+      <View style={styles.container}>
+        <View style={styles.profileOptions}>
+          <Pressable onPress={goToProfile} style={styles.optionItem}>
+            <FontAwesome name="address-card" size={20} color="#12aae2" />
+            <Text style={styles.optionText}>Hồ sơ người dùng</Text>
+          </Pressable>
+          <TouchableOpacity style={styles.optionItem}>
+            <FontAwesome name="support" size={20} color="#12aae2" />
+            <Text style={styles.optionText}>Trợ giúp</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.optionItem} onPress={logout}>
+            <FontAwesome name="sign-out" size={20} color="#12aae2" />
+            <Text style={styles.optionText}>Đăng xuất</Text>
+          </TouchableOpacity>
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionText}>Phiên bản</Text>
+            <Text style={styles.versionNumber}>1.0.0</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
     backgroundColor: "#f5f5f5",
-    marginTop: 20,
+  },
+  container: {
+    flex: 1,
     padding: 20,
   },
   profileHeader: {
     flexDirection: "row",
     backgroundColor: "#12aae2",
+    paddingTop: 50,
+    paddingBottom: 30,
     padding: 20,
     borderRadius: 10,
     marginBottom: 20,
@@ -160,23 +127,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
-    alignItems: "center", // Align items vertically centered
+    alignItems: "center",
   },
   avatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    marginRight: 10, // Adjusted margin
+    marginRight: 10,
     backgroundColor: "#fff",
-  },
-  editIcon: {
-    borderRadius: 20,
-    padding: 5,
-    marginRight: 10, // Adjusted margin
   },
   profileInfo: {
     justifyContent: "center",
-    marginLeft: 10, // Adjusted margin
+    marginLeft: 10,
   },
   profileName: {
     fontSize: 20,
@@ -188,18 +150,30 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "AvertaRegular",
   },
-  profileOptions: {
-    marginTop: 20,
-  },
+  profileOptions: {},
   optionItem: {
-    padding: 15,
+    paddingTop: 20,
+    paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
     flexDirection: "row",
     alignItems: "center",
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 18,
     marginLeft: 10,
+  },
+  versionContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 15,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  versionText: {
+    fontSize: 18,
+  },
+  versionNumber: {
+    fontSize: 18,
   },
 });

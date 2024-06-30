@@ -8,6 +8,7 @@ import {
   Modal,
   Image,
   ImageBackground,
+  SafeAreaView,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { getTripDriver, getTripDetail } from "@/api/Trip/Trip";
@@ -65,184 +66,179 @@ export default function History() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <ImageBackground
-        source={require("../../assets/images/bg_register.png")}
-        style={styles.bgContainer}
-      >
-        <Text style={styles.header}>Lịch sử cuốc</Text>
-        {rides.length > 0 ? (
-          rides.map((ride, index) => (
-            <TouchableOpacity
-              key={ride.Id}
-              style={styles.card}
-              onPress={() => handleCardPress(ride)}
+    <SafeAreaView style={styles.container}>
+      <ScrollView >
+        <ImageBackground
+          source={require("../../assets/images/bg_register.png")}
+          style={styles.bgContainer}
+        >
+          <Text style={styles.header}>Lịch sử cuốc</Text>
+          {rides.length > 0 ? (
+            rides.map((ride, index) => (
+              <TouchableOpacity
+                key={ride.Id}
+                style={styles.card}
+                onPress={() => handleCardPress(ride)}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.vehicleContainer}>
+                    <Image
+                      source={{
+                        uri:
+                          rideDetails[ride.Id]?.TripDetail?.Vehicle?.ImgURL ||
+                          "https://img.upanh.tv/2024/03/09/vecteezy_car-icon-car-icon-vector-car-icon-simple-sign_5576332.jpg",
+                      }}
+                      style={styles.vehicleImage}
+                    />
+                    <Text style={styles.vehicleMode}>
+                      {rideDetails[ride.Id]?.TripDetail?.Vehicle?.Mode || "N/A"}
+                    </Text>
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={styles.bookingDate}>
+                      {formatTime(ride.BookingDate)}
+                    </Text>
+                  </View>
+                  <View style={styles.cardText}>
+                    <Text style={styles.price}>
+                      {rideDetails[ride.Id]
+                        ? formatCurrency(
+                            rideDetails[ride.Id].TripDetail.TotalPrice
+                          )
+                        : "N/A"}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.status,
+                        {
+                          color:
+                            ride.Status === "Driving"
+                              ? "orange"
+                              : ride.Status === "Finished"
+                              ? "green"
+                              : "#555",
+                        },
+                      ]}
+                    >
+                      {ride.Status}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text>Chưa có cuốc xe nào</Text>
+          )}
+          {selectedRide && (
+            <Modal
+              animationType="slide"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => {
+                setModalVisible(!modalVisible);
+              }}
             >
-              <View style={styles.cardContent}>
-                <View style={styles.vehicleContainer}>
-                  <Image
-                    source={{
-                      uri:
-                        rideDetails[ride.Id]?.TripDetail?.Vehicle?.ImgURL ||
-                        "https://img.upanh.tv/2024/03/09/vecteezy_car-icon-car-icon-vector-car-icon-simple-sign_5576332.jpg",
-                    }}
-                    style={styles.vehicleImage}
-                  />
-                  <Text style={styles.vehicleMode}>
-                    {rideDetails[ride.Id]?.TripDetail?.Vehicle?.Mode || "N/A"}
-                  </Text>
-                </View>
-                <View style={styles.cardText}>
-                  <Text style={styles.bookingDate}>
-                    {formatTime(ride.BookingDate)}
-                  </Text>
-                </View>
-                <View style={styles.cardText}>
-                  <Text style={styles.price}>
-                    {rideDetails[ride.Id]
-                      ? formatCurrency(
-                          rideDetails[ride.Id].TripDetail.TotalPrice
-                        )
-                      : "N/A"}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.status,
-                      {
-                        color:
-                          ride.Status === "Driving"
-                            ? "orange"
-                            : ride.Status === "Finished"
-                            ? "green"
-                            : "#555",
-                      },
-                    ]}
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalView}>
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => setModalVisible(false)}
                   >
-                    {ride.Status}
-                  </Text>
+                    <Ionicons name="close" size={24} color="black" />
+                  </TouchableOpacity>
+                  <Text style={styles.modalText}>Thông tin chuyến đi</Text>
+                  <View style={styles.detailRoadContainer}>
+                    <View style={styles.detailRoad}>
+                      <Ionicons
+                        name="location"
+                        size={20}
+                        color="#FF6347"
+                        style={styles.icon}
+                      />
+                      <View style={styles.detailTextContainerColumn}>
+                        <Text style={styles.headTextColumn}>Khởi hành:</Text>
+                        <Text
+                          style={styles.detailTextColumn}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {selectedRide.TripDetail.StartLocation}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailRoad}>
+                      <FontAwesome
+                        name="location-arrow"
+                        size={20}
+                        color="#1E90FF"
+                        style={styles.icon}
+                      />
+                      <View style={styles.detailTextContainerColumn}>
+                        <Text style={styles.headTextColumn}>Điểm đến:</Text>
+                        <Text
+                          style={styles.detailTextColumn}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {selectedRide.TripDetail.EndLocation}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.divider} />
+                    <View style={styles.detailRoad}>
+                      <FontAwesome
+                        name="road"
+                        size={20}
+                        color="#32CD32"
+                        style={styles.icon}
+                      />
+                      <View style={styles.detailTextContainerRow}>
+                        <Text style={styles.headTextRow}>Lộ trình:</Text>
+                        <Text
+                          style={styles.detailTextRow}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >{`${roundToFirstDecimal(
+                          selectedRide.TripDetail.Distance
+                        )} km`}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailRoad}>
+                      <Ionicons
+                        name="time"
+                        size={20}
+                        color="black"
+                        style={styles.icon}
+                      />
+                      <View style={styles.detailTextContainerRow}>
+                        <Text style={styles.headTextRow}>Thời gian:</Text>
+                        <Text
+                          style={styles.detailTextRow}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {formatTime(selectedRide.TripDetail.StartTime)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={styles.amountContainer}>
+                    <Text style={styles.amountTitleBold}>Tổng thu:</Text>
+                    <Text style={styles.amountValueBold}>
+                      {formatCurrency(selectedRide.TripDetail.TotalPrice)}
+                    </Text>
+                  </View>
+                  <View style={styles.amountContainer}>
+                    <Text style={styles.amountTitle}>Thanh toán:</Text>
+                    <Text style={styles.amountValue}>Tiền mặt</Text>
+                  </View>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Text>Chưa có cuốc xe nào</Text>
-        )}
-
-        {selectedRide && (
-          <Modal
-            animationType="slide"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => {
-              setModalVisible(!modalVisible);
-            }}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalView}>
-                <TouchableOpacity
-                  style={styles.closeButton}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Ionicons name="close" size={24} color="black" />
-                </TouchableOpacity>
-                <Text style={styles.modalText}>Thông tin chuyến đi</Text>
-
-                <View style={styles.detailRoadContainer}>
-                  <View style={styles.detailRoad}>
-                    <Ionicons
-                      name="location"
-                      size={20}
-                      color="#FF6347"
-                      style={styles.icon}
-                    />
-                    <View style={styles.detailTextContainerColumn}>
-                      <Text style={styles.headTextColumn}>Khởi hành:</Text>
-                      <Text
-                        style={styles.detailTextColumn}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {selectedRide.TripDetail.StartLocation}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailRoad}>
-                    <FontAwesome
-                      name="location-arrow"
-                      size={20}
-                      color="#1E90FF"
-                      style={styles.icon}
-                    />
-                    <View style={styles.detailTextContainerColumn}>
-                      <Text style={styles.headTextColumn}>Điểm đến:</Text>
-                      <Text
-                        style={styles.detailTextColumn}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {selectedRide.TripDetail.EndLocation}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.divider} />
-
-                  <View style={styles.detailRoad}>
-                    <FontAwesome
-                      name="road"
-                      size={20}
-                      color="#32CD32"
-                      style={styles.icon}
-                    />
-                    <View style={styles.detailTextContainerRow}>
-                      <Text style={styles.headTextRow}>Lộ trình:</Text>
-                      <Text
-                        style={styles.detailTextRow}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >{`${roundToFirstDecimal(
-                        selectedRide.TripDetail.Distance
-                      )} km`}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.detailRoad}>
-                    <Ionicons
-                      name="time"
-                      size={20}
-                      color="black"
-                      style={styles.icon}
-                    />
-                    <View style={styles.detailTextContainerRow}>
-                      <Text style={styles.headTextRow}>Thời gian:</Text>
-                      <Text
-                        style={styles.detailTextRow}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
-                        {formatTime(selectedRide.TripDetail.StartTime)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.amountContainer}>
-                  <Text style={styles.amountTitleBold}>Tổng thu:</Text>
-                  <Text style={styles.amountValueBold}>
-                    {formatCurrency(selectedRide.TripDetail.TotalPrice)}
-                  </Text>
-                </View>
-                <View style={styles.amountContainer}>
-                  <Text style={styles.amountTitle}>Thanh toán:</Text>
-                  <Text style={styles.amountValue}>Tiền mặt</Text>
-                </View>
-              </View>
-            </View>
-          </Modal>
-        )}
-      </ImageBackground>
-    </ScrollView>
+            </Modal>
+          )}
+        </ImageBackground>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
