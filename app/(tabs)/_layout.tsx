@@ -1,8 +1,17 @@
 import { Tabs } from "expo-router";
-import React from "react";
+import React, { useCallback } from "react";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useFocusEffect } from "@react-navigation/native";
+
+function useRefreshOnFocus(callback: () => void) {
+  useFocusEffect(
+    useCallback(() => {
+      callback();
+    }, [callback])
+  );
+}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -25,6 +34,13 @@ export default function TabLayout() {
             />
           ),
         }}
+        listeners={({ navigation }) => ({
+          focus: () => {
+            navigation.addListener('focus', () => {
+              navigation.navigate('index', { refresh: true });
+            });
+          },
+        })}
       />
 
       <Tabs.Screen
@@ -36,6 +52,13 @@ export default function TabLayout() {
             <TabBarIcon name="calendar" color={color} />
           ),
         }}
+        listeners={({ navigation }) => ({
+          focus: () => {
+            navigation.addListener('focus', () => {
+              navigation.navigate('history', { refresh: true });
+            });
+          },
+        })}
       />
       <Tabs.Screen
         name="profile"
@@ -44,6 +67,13 @@ export default function TabLayout() {
           headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
         }}
+        listeners={({ navigation }) => ({
+          focus: () => {
+            navigation.addListener('focus', () => {
+              navigation.navigate('profile', { refresh: true });
+            });
+          },
+        })}
       />
     </Tabs>
   );

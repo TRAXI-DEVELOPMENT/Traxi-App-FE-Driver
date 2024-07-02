@@ -16,3 +16,8 @@ export const roundToFirstDecimal = (num: number): number => {
 export const formatCurrency = (amount: number): string => {
   return amount.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
 };
+
+export function formatBirthday(input: string): string {
+  const parts = input.split("/");
+  return parts.join(" / ");
+}

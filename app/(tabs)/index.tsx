@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -12,11 +12,23 @@ import {
 } from "react-native";
 import { EvilIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function HomeScreen() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const checkUserInfo = async () => {
+      const userInfo = await AsyncStorage.getItem("USER_INFO");
+      if (!userInfo) {
+        router.push("/signin");
+      }
+    };
+
+    checkUserInfo();
+  }, []);
 
   const goToInnerCity = () => {
     router.push("/InnerCity");

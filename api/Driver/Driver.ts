@@ -3,7 +3,7 @@ import axiosInstance from "@/utils/axios";
 export const getDriverProfile = async (driverId: string) => {
   try {
     const response = await axiosInstance.get(`/driver/${driverId}`);
-    return response.data;
+    return response.data.result;
   } catch (error) {
     console.log("Lỗi khi lấy thông tin tài xế:", error);
     throw error;

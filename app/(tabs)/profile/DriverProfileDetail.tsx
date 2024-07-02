@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,60 +12,58 @@ import {
 } from "react-native";
 import { changeAvatar, getDriverProfile } from "@/api/Driver/Driver";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DriverProfile as DriverProfileType } from "@/types/Driver";
+import {
+  DriverDegree,
+  DriverProfile as DriverProfileType,
+} from "@/types/Driver";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { uploadImage } from "@/api/Upload/UpLoadImage";
 import * as ImagePicker from "expo-image-picker";
-
-const fakeLicenses = [
-  {
-    ImageUrl:
-      "https://res.cloudinary.com/dtl7s29go/image/upload/v1710705657/qp1wtpbygihj10redt5h.jpg",
-    IssueDate: "2022-01-01",
-    Type: "B2",
-    Number: "123456789",
-  },
-  {
-    ImageUrl:
-      "https://res.cloudinary.com/dtl7s29go/image/upload/v1710705657/qp1wtpbygihj10redt5h.jpg",
-    IssueDate: "2021-05-15",
-    Type: "C",
-    Number: "987654321",
-  },
-];
+import { formatBirthday } from "@/utils/format";
+import { getDriverDegree } from "@/api/Driver/DriverDegree";
+import { useRouter } from "expo-router";
 
 export default function DriverProfileDetail() {
   const [driverProfile, setDriverProfile] = useState<DriverProfileType | null>(
     null
   );
+  const [driverDegree, setDriverDegree] = useState<DriverDegree[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const navigation = useNavigation();
+  const router = useRouter();
+
+  const fetchDriverProfile = async () => {
+    try {
+      const userInfo = await AsyncStorage.getItem("USER_INFO");
+      const driverInfo = userInfo ? JSON.parse(userInfo) : null;
+      const driverId = driverInfo?.id;
+
+      if (driverId) {
+        const data = await getDriverProfile(driverId);
+        setDriverProfile({ ...data });
+        const driverDegreeData = await getDriverDegree(driverId);
+        setDriverDegree(driverDegreeData);
+      }
+    } catch (error) {
+      console.error("Error fetching driver profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
-
-    const fetchDriverProfile = async () => {
-      try {
-        const userInfo = await AsyncStorage.getItem("USER_INFO");
-        const driverInfo = userInfo ? JSON.parse(userInfo) : null;
-        const driverId = driverInfo?.id;
-
-        if (driverId) {
-          const data = await getDriverProfile(driverId);
-          setDriverProfile({ ...data.result, Licenses: fakeLicenses });
-        }
-      } catch (error) {
-        console.error("Error fetching driver profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDriverProfile();
   }, [navigation]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDriverProfile();
+    }, [])
+  );
 
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -130,6 +128,10 @@ export default function DriverProfileDetail() {
     }
   };
 
+  const handleNavigateToUpload = () => {
+    router.push("/(tabs)/profile/UploadDriverLicense");
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.profileHeader}>
@@ -141,7 +143,11 @@ export default function DriverProfileDetail() {
         </TouchableOpacity>
         <View style={styles.avatarContainer}>
           <Image
-            source={{ uri: driverProfile.ImageUrl }}
+            source={{
+              uri:
+                driverProfile.ImageUrl ||
+                "https://res.cloudinary.com/dtl7s29go/image/upload/v1719893155/soic9qbgyyxlso3uhmcr.png",
+            }}
             style={styles.avatar}
           />
           <TouchableOpacity style={styles.editIcon} onPress={handleEditAvatar}>
@@ -157,47 +163,70 @@ export default function DriverProfileDetail() {
           <Text style={styles.infoValue}>{driverProfile.Phone}</Text>
         </View>
         <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Ngày sinh:</Text>
+          <Text style={styles.infoValue}>
+            {formatBirthday(driverProfile.Birthday)}
+          </Text>
+        </View>
+        <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Địa chỉ:</Text>
           <Text style={styles.infoValue}>{driverProfile.Address}</Text>
         </View>
+
         <View style={styles.divider} />
-        {driverProfile.Licenses &&
-          driverProfile.Licenses.map((license, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => openModal(license.ImageUrl)}
-            >
-              <View style={styles.licenseContainer}>
-                <Text style={styles.licenseTitle}>
-                  Giấy phép lái xe / Driver's License
-                </Text>
-                <View style={styles.licenseContent}>
-                  <Image
-                    source={{ uri: license.ImageUrl }}
-                    style={styles.licenseImage}
-                  />
-                  <View style={styles.licenseDetails}>
-                    <View style={styles.row}>
-                      <Text style={styles.headLicenseTextNumber}>Số/No:</Text>
-                      <Text style={styles.licenseTextNumber}>
-                        {license.Number}
-                      </Text>
-                    </View>
-                    <View style={styles.row}>
-                      <Text style={styles.headLicenseText}>Ngày cấp:</Text>
-                      <Text style={styles.licenseText}>
-                        {new Date(license.IssueDate).toLocaleDateString()}
-                      </Text>
-                    </View>
-                    <View style={styles.row}>
-                      <Text style={styles.headLicenseText}>Hạng/Class:</Text>
-                      <Text style={styles.licenseText}>{license.Type}</Text>
+        {driverDegree && driverDegree.length > 0 ? (
+          <>
+            {driverDegree.map((license: DriverDegree, index: number) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => openModal(license.ImageUrl)}
+              >
+                <View style={styles.licenseContainer}>
+                  <Text style={styles.licenseTitle}>
+                    Giấy phép lái xe / Driver's License
+                  </Text>
+                  <View style={styles.licenseContent}>
+                    <Image
+                      source={{ uri: license.ImageUrl }}
+                      style={styles.licenseImage}
+                    />
+                    <View style={styles.licenseDetails}>
+                      <View style={styles.row}>
+                        <Text style={styles.headLicenseTextNumber}>Số/No:</Text>
+                        <Text style={styles.licenseTextNumber}>
+                          {license.No}
+                        </Text>
+                      </View>
+                      <View style={styles.row}>
+                        <Text style={styles.headLicenseText}>Ngày cấp:</Text>
+                        <Text style={styles.licenseText}>
+                          {license.Expires}
+                        </Text>
+                      </View>
+                      <View style={styles.row}>
+                        <Text style={styles.headLicenseText}>Nơi cấp:</Text>
+                        <Text style={styles.licenseText}>
+                          {license.IssuedBy}
+                        </Text>
+                      </View>
+                      <View style={styles.row}>
+                        <Text style={styles.headLicenseText}>Hạng/Class:</Text>
+                        <Text style={styles.licenseText}>{license.Type}</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity onPress={handleNavigateToUpload}>
+              <Text style={styles.updateButton}>Thêm bằng lái xe</Text>
             </TouchableOpacity>
-          ))}
+          </>
+        ) : (
+          <TouchableOpacity onPress={handleNavigateToUpload}>
+            <Text style={styles.updateButton}>Cập nhật bằng lái xe</Text>
+          </TouchableOpacity>
+        )}
         <Modal visible={modalVisible} transparent={true} animationType="slide">
           <View style={styles.modalContainer}>
             {selectedImage && (
@@ -301,12 +330,12 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 16,
-    fontWeight: "bold",
-    fontFamily: "Averta",
+    fontFamily: "AvertaRegular",
   },
   infoValue: {
     fontSize: 16,
     fontFamily: "Averta",
+    flexWrap: "wrap",
   },
   licenseContainer: {
     flexDirection: "column",
@@ -394,5 +423,11 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "contain",
+  },
+  updateButton: {
+    fontSize: 16,
+    color: "blue",
+    textDecorationLine: "underline",
+    marginTop: 20,
   },
 });

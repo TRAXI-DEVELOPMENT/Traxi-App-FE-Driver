@@ -5,17 +5,16 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Pressable,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDriverProfile, changeAvatar } from "@/api/Driver/Driver";
+import { getDriverProfile } from "@/api/Driver/Driver";
 import useAuth from "@/hooks/useAuth";
 import { DriverProfile as DriverProfileType } from "@/types/Driver";
 import { FontAwesome } from "@expo/vector-icons";
-import { uploadImage } from "@/api/Upload/UpLoadImage";
 import { useRouter } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
+import { formatBirthday } from "@/utils/format";
 
 export default function DriverProfile() {
   const [driverProfile, setDriverProfile] = useState<DriverProfileType | null>(
@@ -42,7 +41,7 @@ export default function DriverProfile() {
       if (driverId) {
         getDriverProfile(driverId)
           .then((data) => {
-            setDriverProfile(data.result);
+            setDriverProfile(data);
           })
           .catch((error) => {
             console.error("Không thể lấy thông tin tài xế:", error);
@@ -71,12 +70,18 @@ export default function DriverProfile() {
         {driverProfile && (
           <View style={{ flexDirection: "row" }}>
             <Image
-              source={{ uri: driverProfile.ImageUrl }}
+              source={{
+                uri:
+                  driverProfile.ImageUrl ||
+                  "https://res.cloudinary.com/dtl7s29go/image/upload/v1719893155/soic9qbgyyxlso3uhmcr.png",
+              }}
               style={styles.avatar}
             />
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{driverProfile.FullName}</Text>
-              <Text style={styles.profilePhone}>{driverProfile.Phone}</Text>
+              <Text style={styles.profileBirthDay}>
+                {formatBirthday(driverProfile.Birthday)}
+              </Text>
             </View>
           </View>
         )}
@@ -145,11 +150,7 @@ const styles = StyleSheet.create({
     fontFamily: "Averta",
     color: "#fff",
   },
-  profilePhone: {
-    fontSize: 18,
-    color: "#fff",
-    fontFamily: "AvertaRegular",
-  },
+  profileBirthDay: { fontSize: 16, color: "#fff", fontFamily: "AvertaRegular" },
   profileOptions: {},
   optionItem: {
     paddingTop: 20,
