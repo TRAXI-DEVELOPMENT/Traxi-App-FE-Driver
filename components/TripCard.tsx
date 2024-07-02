@@ -23,8 +23,8 @@ interface TripCardProps {
 }
 
 const TripCard: React.FC<TripCardProps> = ({ item }) => {
-  const [tripDetails, setTripDetails] = useState<TripDetails | null>(null);
-  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [tripDetails, setTripDetails] = useState<TripDetails>();
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo>();
 
   useEffect(() => {
     const fetchTripDetails = async () => {
@@ -56,33 +56,29 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
     }
   }, [tripDetails]);
 
-  if (!tripDetails || !customerInfo) {
-    return <Text>Loading...</Text>;
-  }
-
   return (
     <View style={styles.card}>
       <Image
-        source={{ uri: tripDetails.TripDetail.Vehicle?.ImgURL }}
+        source={{ uri: tripDetails?.TripDetail.Vehicle?.ImgURL }}
         style={styles.vehicleImage}
       />
       <View style={styles.vehicleInfo}>
         <Text style={styles.vehicleName}>
-          {tripDetails.TripDetail.Vehicle?.Mode}
+          {tripDetails?.TripDetail.Vehicle?.Mode}
         </Text>
         <Text style={styles.price}>
-          {formatCurrency(tripDetails.TripDetail.TotalPrice)}
+          {formatCurrency(tripDetails?.TripDetail.TotalPrice || 0)}
         </Text>
       </View>
 
       <View style={styles.ownerInfo}>
         <Image
-          source={{ uri: customerInfo.ImageURL }}
+          source={{ uri: customerInfo?.ImageURL }}
           style={styles.ownerAvatar}
         />
         <View>
-          <Text style={styles.ownerName}>{customerInfo.FulllName}</Text>
-          <Text style={styles.ownerPhone}>{customerInfo.Phone}</Text>
+          <Text style={styles.ownerName}>{customerInfo?.FulllName}</Text>
+          <Text style={styles.ownerPhone}>{customerInfo?.Phone}</Text>
         </View>
       </View>
 
@@ -101,7 +97,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {tripDetails.TripDetail.StartLocation}
+              {tripDetails?.TripDetail.StartLocation}
             </Text>
           </View>
         </View>
@@ -120,7 +116,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {tripDetails.TripDetail.EndLocation}
+              {tripDetails?.TripDetail.EndLocation}
             </Text>
           </View>
         </View>
@@ -141,7 +137,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
               numberOfLines={1}
               ellipsizeMode="tail"
             >{`${roundToFirstDecimal(
-              tripDetails.TripDetail.Distance
+              tripDetails?.TripDetail.Distance || 0
             )} km`}</Text>
           </View>
         </View>
@@ -155,7 +151,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
               numberOfLines={1}
               ellipsizeMode="tail"
             >
-              {formatTime(tripDetails.TripDetail.StartTime)}
+              {formatTime(tripDetails?.TripDetail.StartTime || "N/A")}
             </Text>
           </View>
         </View>

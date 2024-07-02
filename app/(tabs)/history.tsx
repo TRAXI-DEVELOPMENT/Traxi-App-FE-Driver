@@ -9,6 +9,7 @@ import {
   Image,
   ImageBackground,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { getTripDriver, getTripDetail } from "@/api/Trip/Trip";
@@ -27,6 +28,7 @@ export default function History() {
   const [rideDetails, setRideDetails] = useState<{
     [key: string]: TripDetails;
   }>({});
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchTripHistory = async () => {
@@ -54,6 +56,8 @@ export default function History() {
         }
       } catch (error) {
         console.error("Error fetching trip history:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -65,9 +69,19 @@ export default function History() {
     setModalVisible(true);
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#12aae2" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView >
+      <ScrollView>
         <ImageBackground
           source={require("../../assets/images/bg_register.png")}
           style={styles.bgContainer}
@@ -120,7 +134,11 @@ export default function History() {
                         },
                       ]}
                     >
-                      {ride.Status}
+                      {ride.Status === "Driving"
+                        ? "Đang di chuyển"
+                        : ride.Status === "Finished"
+                        ? "Hoàn thành"
+                        : ride.Status}
                     </Text>
                   </View>
                 </View>
@@ -248,6 +266,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#f0f4f7",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   bgContainer: {
     backgroundColor: "#f0f4f7",

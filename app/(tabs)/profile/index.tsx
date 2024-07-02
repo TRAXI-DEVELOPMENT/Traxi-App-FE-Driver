@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDriverProfile } from "@/api/Driver/Driver";
@@ -21,6 +22,7 @@ export default function DriverProfile() {
     null
   );
   const [userExists, setUserExists] = useState(true);
+  const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
   const navigation = useNavigation();
 
@@ -33,28 +35,37 @@ export default function DriverProfile() {
     navigation.setOptions({ headerShown: false });
 
     const checkUserInfo = async () => {
-      const userInfo = await AsyncStorage.getItem("USER_INFO");
-      const driverInfo = userInfo ? JSON.parse(userInfo) : null;
+      try {
+        const userInfo = await AsyncStorage.getItem("USER_INFO");
+        const driverInfo = userInfo ? JSON.parse(userInfo) : null;
 
-      const driverId = driverInfo?.id;
+        const driverId = driverInfo?.id;
 
-      if (driverId) {
-        getDriverProfile(driverId)
-          .then((data) => {
-            setDriverProfile(data);
-          })
-          .catch((error) => {
-            console.error("Không thể lấy thông tin tài xế:", error);
-          });
-      }
+        if (driverId) {
+          const data = await getDriverProfile(driverId);
+          setDriverProfile(data);
+        }
 
-      if (!userInfo) {
-        setUserExists(false);
+        if (!userInfo) {
+          setUserExists(false);
+        }
+      } catch (error) {
+        console.error("Không thể lấy thông tin tài xế:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     checkUserInfo();
   }, [navigation]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#12aae2" />
+      </View>
+    );
+  }
 
   if (!userExists) {
     return (
@@ -176,5 +187,10 @@ const styles = StyleSheet.create({
   },
   versionNumber: {
     fontSize: 18,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

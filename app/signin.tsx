@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import useAuth from "@/hooks/useAuth";
 import { Redirect } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 
 interface AxiosError extends Error {
   response?: {
@@ -27,8 +28,10 @@ export default function Signin() {
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const [redirectToSignup, setRedirectToSignup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
       await login(phone, password);
       Alert.alert("Đăng nhập thành công", `Token: `);
@@ -37,8 +40,18 @@ export default function Signin() {
       const errorMessage =
         axiosError.response?.data?.message || axiosError.message;
       Alert.alert("Lỗi đăng nhập", errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isLoading) {
+      SplashScreen.preventAutoHideAsync();
+    } else {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
   if (redirectToSignup) {
     return <Redirect href="/signup" />;

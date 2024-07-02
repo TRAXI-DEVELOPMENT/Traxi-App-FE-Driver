@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { getAllTripsNoDriver } from "@/api/Trip/Trip";
 import { TripItem } from "@/types/Trip";
@@ -27,7 +27,11 @@ const InnerCity = () => {
   }, []);
 
   if (loading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#12aae2" />
+      </View>
+    );
   }
 
   if (error) {
@@ -42,7 +46,15 @@ const InnerCity = () => {
     <View style={styles.container}>
       <Swiper
         cards={trips}
-        renderCard={(item) => <TripCard item={item} />}
+        renderCard={(item) => (
+          <View style={styles.cardContainer}>
+            {item ? (
+              <TripCard item={item} />
+            ) : (
+              <ActivityIndicator size="large" color="#12aae2" />
+            )}
+          </View>
+        )}
         onSwiped={(index) => setCardIndex(index + 1)}
         onSwipedAll={handleSwipedAll}
         cardIndex={cardIndex}
@@ -60,6 +72,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     alignItems: "center",
     justifyContent: "center",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

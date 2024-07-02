@@ -26,18 +26,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Làm việc",
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
-              name={focused ? "home" : "home-outline"}
+              name={focused ? "car" : "car-outline"}
               color={color}
             />
           ),
         }}
         listeners={({ navigation }) => ({
           focus: () => {
-            navigation.addListener('focus', () => {
-              navigation.navigate('index', { refresh: true });
+            navigation.addListener("focus", () => {
+              navigation.navigate("index", { refresh: true });
             });
           },
         })}
@@ -48,14 +48,17 @@ export default function TabLayout() {
         options={{
           title: "Lịch sử cuốc",
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="calendar" color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "time" : "time-outline"}
+              color={color}
+            />
           ),
         }}
         listeners={({ navigation }) => ({
           focus: () => {
-            navigation.addListener('focus', () => {
-              navigation.navigate('history', { refresh: true });
+            navigation.addListener("focus", () => {
+              navigation.navigate("history", { refresh: true });
             });
           },
         })}
@@ -63,14 +66,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Hồ sơ",
           headerShown: false,
-          tabBarIcon: ({ color }) => <TabBarIcon name="person" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "person" : "person-outline"}
+              color={color}
+            />
+          ),
         }}
         listeners={({ navigation }) => ({
           focus: () => {
-            navigation.addListener('focus', () => {
-              navigation.navigate('profile', { refresh: true });
+            navigation.addListener("focus", () => {
+              navigation.navigate("profile", { refresh: true });
             });
           },
         })}

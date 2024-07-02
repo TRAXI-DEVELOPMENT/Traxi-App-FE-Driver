@@ -8,7 +8,6 @@ import {
   ImageBackground,
   TouchableOpacity,
 } from "react-native";
-import { RNCamera } from "react-native-camera";
 
 export default function Signup() {
   const [step, setStep] = useState(1);
@@ -138,12 +137,7 @@ export default function Signup() {
               value={confirmPassword}
               onChangeText={setConfirmPassword}
             />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                
-              }}
-            >
+            <TouchableOpacity style={styles.button} onPress={() => {}}>
               <Text style={styles.buttonText}>Hoàn tất</Text>
             </TouchableOpacity>
           </View>

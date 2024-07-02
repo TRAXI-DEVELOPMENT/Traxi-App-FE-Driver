@@ -66,7 +66,11 @@ export default function DriverProfileDetail() {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#12aae2" />
+      </View>
+    );
   }
 
   if (!driverProfile) {
@@ -218,13 +222,13 @@ export default function DriverProfileDetail() {
                 </View>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity onPress={handleNavigateToUpload}>
-              <Text style={styles.updateButton}>Thêm bằng lái xe</Text>
+            <TouchableOpacity style={styles.updateButtonContainer} onPress={handleNavigateToUpload}>
+              <Text style={styles.updateButtonText}>Cập nhật bằng lái xe</Text>
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity onPress={handleNavigateToUpload}>
-            <Text style={styles.updateButton}>Cập nhật bằng lái xe</Text>
+          <TouchableOpacity style={styles.updateButtonContainer} onPress={handleNavigateToUpload}>
+            <Text style={styles.updateButtonText}>Cập nhật bằng lái xe</Text>
           </TouchableOpacity>
         )}
         <Modal visible={modalVisible} transparent={true} animationType="slide">
@@ -424,10 +428,22 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "contain",
   },
-  updateButton: {
-    fontSize: 16,
-    color: "blue",
-    textDecorationLine: "underline",
+  updateButtonContainer: {
+    backgroundColor: "#12aae2",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
     marginTop: 20,
+  },
+  updateButtonText: {
+    fontSize: 16,
+    color: "white",
+    fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

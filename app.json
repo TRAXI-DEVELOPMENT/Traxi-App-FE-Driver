@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Traxi_App_Driver_RN",
-    "slug": "Traxi_App_Driver_RN",
+    "name": "Traxi",
+    "slug": "Traxi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,13 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "y"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.id09st.Traxi_App_Driver_RN"
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +33,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "36fe21b7-e1b6-4765-bfa3-71a0d3e8bfa1"
+      }
     }
   }
 }
