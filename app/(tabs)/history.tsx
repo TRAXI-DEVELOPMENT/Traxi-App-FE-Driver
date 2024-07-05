@@ -39,10 +39,14 @@ export default function History() {
 
         const data = await getTripDriver(driverId);
         if (data && data.result) {
-          setRides(data.result);
+          // Sắp xếp các chuyến đi theo thời gian gần nhất
+          const sortedRides = data.result.sort((a: Trip, b: Trip) => {
+            return new Date(b.BookingDate).getTime() - new Date(a.BookingDate).getTime();
+          });
+          setRides(sortedRides);
 
           const details = await Promise.all(
-            data.result.map(async (ride: Trip) => {
+            sortedRides.map(async (ride: Trip) => {
               const detailData = await getTripDetail(ride.Id);
               return { [ride.Id]: detailData.result };
             })
@@ -81,7 +85,7 @@ export default function History() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView>
+      <ScrollView style={styles.scrollView}>
         <ImageBackground
           source={require("../../assets/images/bg_register.png")}
           style={styles.bgContainer}
@@ -262,11 +266,11 @@ export default function History() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 30,
+    marginTop: 40,
     flex: 1,
-    padding: 20,
     backgroundColor: "#f0f4f7",
   },
+  scrollView: { paddingLeft: 20, paddingRight: 20 },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",

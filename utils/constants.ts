@@ -1,1 +1,1 @@
-export const API_ROOT = "https://traxi-application-be.onrender.com/api/v1";
+export const API_ROOT = "https://traxi.me/api/v1";

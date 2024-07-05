@@ -10,10 +10,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import useAuth from "@/hooks/useAuth";
 import { Redirect } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import Dialog from "@/components/Dialog"; // Import Dialog component
 
 interface AxiosError extends Error {
   response?: {
@@ -29,17 +31,54 @@ export default function Signin() {
   const { login } = useAuth();
   const [redirectToSignup, setRedirectToSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogType, setDialogType] = useState<"success" | "error">("success");
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [dialogMessage, setDialogMessage] = useState("");
 
   const handleLogin = async () => {
+    if (!phone && !password) {
+      setDialogTitle("Lỗi");
+      setDialogMessage("Vui lòng điền số điện thoại và mật khẩu.");
+      setDialogType("error");
+      setDialogVisible(true);
+      return;
+    } else if (!phone) {
+      setDialogTitle("Lỗi");
+      setDialogMessage("Vui lòng điền số điện thoại.");
+      setDialogType("error");
+      setDialogVisible(true);
+      return;
+    } else if (!password) {
+      setDialogTitle("Lỗi");
+      setDialogMessage("Vui lòng điền mật khẩu.");
+      setDialogType("error");
+      setDialogVisible(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       await login(phone, password);
-      Alert.alert("Đăng nhập thành công", `Token: `);
+      setDialogTitle("Đăng nhập thành công");
+      setDialogMessage("Token: ");
+      setDialogType("success");
+      setDialogVisible(true);
     } catch (error) {
       const axiosError = error as AxiosError;
       const errorMessage =
         axiosError.response?.data?.message || axiosError.message;
-      Alert.alert("Lỗi đăng nhập", errorMessage);
+      if (axiosError.response?.data?.message === "Đã có bằng lái loại B4") {
+        setDialogTitle("Lỗi");
+        setDialogMessage("Tải lên bằng lái bị trùng.");
+        setDialogType("error");
+        setDialogVisible(true);
+      } else {
+        setDialogTitle("Lỗi đăng nhập");
+        setDialogMessage(errorMessage);
+        setDialogType("error");
+        setDialogVisible(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -93,12 +132,27 @@ export default function Signin() {
             </TouchableOpacity>
           </View>
           <View style={styles.footer}>
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Đăng nhập</Text>
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.disabledButton]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Đăng nhập</Text>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Dialog
+        visible={dialogVisible}
+        onClose={() => setDialogVisible(false)}
+        title={dialogTitle}
+        message={dialogMessage}
+        type={dialogType}
+      />
     </ImageBackground>
   );
 }
@@ -174,6 +228,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
   },
   buttonText: {
     color: "white",

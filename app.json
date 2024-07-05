@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Traxi",
-    "slug": "Traxi",
+    "name": "TraXi Driver",
+    "slug": "Traxi_App_Driver_RN",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

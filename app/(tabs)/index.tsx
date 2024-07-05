@@ -23,7 +23,7 @@ export default function HomeScreen() {
     const checkUserInfo = async () => {
       const userInfo = await AsyncStorage.getItem("USER_INFO");
       if (!userInfo) {
-        router.push("/signin");
+        router.replace("/signin");
       }
     };
 

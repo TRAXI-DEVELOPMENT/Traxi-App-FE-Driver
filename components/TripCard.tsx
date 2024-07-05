@@ -59,7 +59,11 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
   return (
     <View style={styles.card}>
       <Image
-        source={{ uri: tripDetails?.TripDetail.Vehicle?.ImgURL }}
+        source={{
+          uri:
+            tripDetails?.TripDetail.Vehicle?.ImgURL ||
+            "https://img.upanh.tv/2024/03/09/vecteezy_car-icon-car-icon-vector-car-icon-simple-sign_5576332.jpg",
+        }}
         style={styles.vehicleImage}
       />
       <View style={styles.vehicleInfo}>

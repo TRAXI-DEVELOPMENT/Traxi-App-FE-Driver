@@ -169,7 +169,7 @@ export default function DriverProfileDetail() {
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Ngày sinh:</Text>
           <Text style={styles.infoValue}>
-            {formatBirthday(driverProfile.Birthday)}
+            {formatBirthday(driverProfile.Birthday) || "01 / 01 / 1970"}
           </Text>
         </View>
         <View style={styles.infoRow}>
@@ -222,12 +222,18 @@ export default function DriverProfileDetail() {
                 </View>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={styles.updateButtonContainer} onPress={handleNavigateToUpload}>
+            <TouchableOpacity
+              style={styles.updateButtonContainer}
+              onPress={handleNavigateToUpload}
+            >
               <Text style={styles.updateButtonText}>Cập nhật bằng lái xe</Text>
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity style={styles.updateButtonContainer} onPress={handleNavigateToUpload}>
+          <TouchableOpacity
+            style={styles.updateButtonContainer}
+            onPress={handleNavigateToUpload}
+          >
             <Text style={styles.updateButtonText}>Cập nhật bằng lái xe</Text>
           </TouchableOpacity>
         )}
@@ -276,7 +282,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#12aae2",
     paddingTop: 80,
     padding: 20,
-    paddingBottom: 30,
+    paddingBottom: 20,
     width: "100%",
     borderBottomLeftRadius: 40,
     borderBottomRightRadius: 40,
@@ -307,8 +313,8 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     position: "absolute",
-    bottom: 10,
-    right: 10,
+    bottom: 22,
+    right: -2,
     borderRadius: 15,
     padding: 5,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

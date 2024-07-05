@@ -6,9 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   ScrollView,
   ImageBackground,
+  ActivityIndicator,
+  Modal,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { uploadImage } from "@/api/Upload/UpLoadImage";
@@ -17,6 +18,7 @@ import { postDriverDegree } from "@/api/Driver/DriverDegree";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
 import { Ionicons } from "@expo/vector-icons";
+import Dialog from "@/components/Dialog"; // Import Dialog component
 
 export default function UploadDriverLicense() {
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -28,6 +30,13 @@ export default function UploadDriverLicense() {
   const navigation = useNavigation();
   const router = useRouter();
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // State for Dialog
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogType, setDialogType] = useState<"success" | "error">("success");
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [dialogMessage, setDialogMessage] = useState("");
 
   React.useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -38,7 +47,10 @@ export default function UploadDriverLicense() {
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (permissionResult.granted === false) {
-      Alert.alert("Cần có quyền truy cập vào cuộn camera!");
+      setDialogTitle("Lỗi");
+      setDialogMessage("Cần có quyền truy cập vào cuộn camera!");
+      setDialogType("error");
+      setDialogVisible(true);
       return;
     }
 
@@ -77,14 +89,22 @@ export default function UploadDriverLicense() {
 
   const handleSubmit = async () => {
     if (!isConfirmed) {
-      Alert.alert("Vui lòng xác nhận tất cả các thông tin trên là đúng");
+      setDialogTitle("Lỗi");
+      setDialogMessage("Vui lòng xác nhận tất cả các thông tin trên là đúng");
+      setDialogType("error");
+      setDialogVisible(true);
       return;
     }
 
     if (!selectedImage || !licenseNumber || !issueDate || !licenseClass) {
-      Alert.alert("Vui lòng điền đầy đủ tất cả thông tin");
+      setDialogTitle("Lỗi");
+      setDialogMessage("Vui lòng điền đầy đủ tất cả thông tin");
+      setDialogType("error");
+      setDialogVisible(true);
       return;
     }
+
+    setIsLoading(true);
 
     try {
       const userInfo = await AsyncStorage.getItem("USER_INFO");
@@ -110,11 +130,26 @@ export default function UploadDriverLicense() {
       const response = await postDriverDegree(driverDegreeData);
       console.log("Post response:", response);
 
-      Alert.alert("Giấy phép lái xe đã được tải lên thành công!");
-      router.back();
+      if (typeof response.result === "string") {
+        setDialogTitle("Lỗi");
+        setDialogMessage(response.result);
+        setDialogType("error");
+        setDialogVisible(true);
+      } else {
+        setDialogTitle("Thành công");
+        setDialogMessage("Giấy phép lái xe đã được tải lên thành công!");
+        setDialogType("success");
+        setDialogVisible(true);
+        router.back();
+      }
     } catch (error) {
       console.error("Error uploading driver license:", error);
-      Alert.alert("Error uploading driver license.");
+      setDialogTitle("Lỗi");
+      setDialogMessage("Error uploading driver license.");
+      setDialogType("error");
+      setDialogVisible(true);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -199,9 +234,32 @@ export default function UploadDriverLicense() {
               </Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              isLoading ? styles.disabledButton : {},
+            ]}
+            onPress={handleSubmit}
+            disabled={isLoading}
+          >
             <Text style={styles.submitButtonText}>Tải lên</Text>
           </TouchableOpacity>
+          <Modal visible={isLoading} transparent>
+            <View style={styles.loadingModalContainer}>
+              <ActivityIndicator
+                size="large"
+                color="#12aae2"
+                style={styles.loadingIndicator}
+              />
+            </View>
+          </Modal>
+          <Dialog
+            visible={dialogVisible}
+            type={dialogType}
+            title={dialogTitle}
+            message={dialogMessage}
+            onClose={() => setDialogVisible(false)}
+          />
         </ScrollView>
       </ImageBackground>
     </View>
@@ -209,7 +267,7 @@ export default function UploadDriverLicense() {
 }
 
 const styles = StyleSheet.create({
-  outerContainer: { flex: 1, backgroundColor: "#f5f5f5" },
+  outerContainer: { flex: 1, backgroundColor: "#f5f5f5", paddingBottom: 90 },
   titleWrapper: {},
   bgContainer: {
     backgroundColor: "#f0f4f7",
@@ -225,7 +283,6 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     padding: 20,
     width: "100%",
-    marginBottom: 20,
     backgroundColor: "#12aae2",
     textAlign: "center",
     color: "#fff",
@@ -288,6 +345,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 20,
   },
+  disabledButton: {
+    backgroundColor: "#ccc",
+  },
   submitButtonText: {
     color: "white",
     fontFamily: "Averta",
@@ -319,5 +379,14 @@ const styles = StyleSheet.create({
   checkboxText: {
     fontSize: 16,
     color: "#555",
+  },
+  loadingIndicator: {
+    marginTop: 20,
+  },
+  loadingModalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });

@@ -18,6 +18,13 @@ export const formatCurrency = (amount: number): string => {
 };
 
 export function formatBirthday(input: string): string {
-  const parts = input.split("/");
+  let parts;
+  if (input.includes("/")) {
+    parts = input.split("/");
+  } else if (input.includes("-")) {
+    parts = input.split("-");
+  } else {
+    return input;
+  }
   return parts.join(" / ");
 }
