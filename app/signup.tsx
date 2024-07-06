@@ -17,16 +17,18 @@ import { useRouter } from "expo-router"; // Import useRouter để điều hư�
 import { Picker } from "@react-native-picker/picker";
 import Dialog from "@/components/Dialog"; // Import Dialog component
 import { uploadImage } from "@/api/Upload/UpLoadImage";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { postDriverDegree } from "@/api/Driver/DriverDegree";
 import { applyJob } from "@/api/Auth/Auth"; // Import applyJob API
+import { Camera } from "expo-camera";
+import * as Notifications from "expo-notifications";
+import { formatBirthday, formatDateString } from "@/utils/format";
 
 export default function Signup() {
   const [step, setStep] = useState(1);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState("");
   const [address, setAddress] = useState("");
-  const [temporaryAddress, setTemporaryAddress] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -53,13 +55,15 @@ export default function Signup() {
   const [birthday, setBirthday] = useState(""); // Thêm state cho Birthday
   const [birthdayError, setBirthdayError] = useState(""); // Thêm state cho lỗi Birthday
   const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isImageUploaded, setIsImageUploaded] = useState(false);
   const router = useRouter(); // Sử dụng useRouter để điều hướng
 
   const validateStep1 = () => {
     let hasError = false;
 
     if (!/^[0-9]{10}$/.test(phoneNumber) || phoneNumber[0] !== "0") {
-      setPhoneError("Số điện thoại phải có 10 số và bắt đầu bằng số 0");
+      setPhoneError("Số điện thoại chưa chính xác");
       hasError = true;
     } else {
       setPhoneError("");
@@ -79,7 +83,7 @@ export default function Signup() {
       setAddressError("");
     }
 
-    if (!/^\d{2}\-\d{2}\-\d{4}$/.test(birthday)) {
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(birthday)) {
       setBirthdayError("Ngày sinh phải đúng định dạng dd/mm/yyyy");
       hasError = true;
     } else {
@@ -93,9 +97,7 @@ export default function Signup() {
     let hasError = false;
 
     if (!/^[0-9]+$/.test(licenseNumber)) {
-      setLicenseNumberError(
-        "Số giấy phép chỉ được nhập số và không được để trống"
-      );
+      setLicenseNumberError("Số giấy phép chưa chính xác");
       hasError = true;
     } else {
       setLicenseNumberError("");
@@ -116,7 +118,7 @@ export default function Signup() {
     }
 
     if (!selectedImage) {
-      setImageError("Hình ảnh phải được chọn");
+      setImageError("Hình ảnh phải được tải lên");
       hasError = true;
     } else {
       setImageError("");
@@ -141,13 +143,15 @@ export default function Signup() {
   }, [password, confirmPassword]);
 
   const nextStep = () => {
-    if (step === 1 && isStep1Valid) {
+    if (step === 1) {
       setStep(step + 1);
     } else if (step === 2 && isStep2Valid) {
       setStep(step + 1);
-    } else if (step === 3) {
+    } else if (step === 3 && isImageUploaded) {
       setStep(step + 1);
-    } else if (step === 4 && isPasswordValid) {
+    } else if (step === 4 && isStep1Valid) {
+      setStep(step + 1);
+    } else if (step === 5 && isPasswordValid) {
       setStep(step + 1);
     }
   };
@@ -183,6 +187,93 @@ export default function Signup() {
       pickerResult.assets.length > 0
     ) {
       setSelectedImage(pickerResult.assets[0].uri);
+    }
+  };
+
+  const handleCaptureAvatar = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Lỗi",
+          body: "Cần có quyền truy cập vào camera!",
+        },
+        trigger: null,
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUri = result.assets[0].uri;
+      setCapturedImage(imageUri);
+      try {
+        const uploadResponse = await uploadImage(imageUri);
+        const imageUrl = uploadResponse.link_img;
+        console.log("Image URL:", imageUrl);
+        setAvatar(imageUrl);
+        setIsImageUploaded(true);
+      } catch (error) {
+        console.error("Lỗi khi upload ảnh:", error);
+        setIsImageUploaded(false);
+      }
+    } else {
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Lỗi",
+          body: "Hình ảnh chưa được chụp thành công hoặc chưa được chụp.",
+        },
+        trigger: null,
+      });
+    }
+  };
+
+  const handleCaptureLicense = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Lỗi",
+          body: "Cần có quyền truy cập vào camera!",
+        },
+        trigger: null,
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const imageUri = result.assets[0].uri;
+      try {
+        const uploadResponse = await uploadImage(imageUri);
+        const imageUrl = uploadResponse.link_img;
+        console.log("Image URL:", imageUrl);
+        setSelectedImage(imageUrl); // Cập nhật selectedImage với URL của ảnh đã tải lên
+        setIsImageUploaded(true);
+      } catch (error) {
+        console.error("Lỗi khi upload ảnh:", error);
+        setIsImageUploaded(false);
+      }
+    } else {
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Lỗi",
+          body: "Hình ảnh chưa được chụp thành công hoặc chưa được chụp.",
+        },
+        trigger: null,
+      });
     }
   };
 
@@ -227,7 +318,8 @@ export default function Signup() {
       const applyJobData = {
         Phone: phoneNumber,
         Birthday: birthday,
-        Fullname: name, // Corrected from FullName to Fullname
+        ImageUrl: avatar,
+        Fullname: name,
         Address: address,
         Password: password,
       };
@@ -266,6 +358,9 @@ export default function Signup() {
           setDialogMessage("Đăng ký thành công!");
           setDialogType("success");
           setDialogVisible(true);
+          setTimeout(() => {
+            router.replace("/signin");
+          }, 2000);
         }
       } else {
         setDialogTitle("Lỗi");
@@ -286,37 +381,365 @@ export default function Signup() {
 
   const getStepTitle = () => {
     switch (step) {
-      case 1:
-        return "Nhập thông tin cá nhân";
       case 2:
         return "Tải lên Bằng lái xe (mặt trước)";
       case 3:
-        return "Tải lên hình ảnh Khuôn mặt";
+        return "Tải lên hình ảnh khuôn mặt";
       case 4:
-        return "Tạo mật khẩu";
+        return "Nhập thông tin cá nhân";
       case 5:
+        return "Tạo mật khẩu";
+      case 6:
         return "Xác nhận thông tin";
       default:
         return "";
     }
   };
 
+  const Step1 = () => {
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.stepTitle}>Hướng dẫn tải lên tài liệu</Text>
+        <View style={styles.imageRow}>
+          <Image
+            source={require("../assets/images/new_sample.png")}
+            style={styles.sampleImage}
+          />
+          <Image
+            source={require("../assets/images/old_sample.png")}
+            style={styles.sampleImage}
+          />
+        </View>
+        <Text style={styles.sampleTitle}>Sample Document</Text>
+        <View style={styles.requirementContainer}>
+          <Ionicons name="checkmark-circle" size={24} color="green" />
+          <Text style={styles.requirementTextTitle}>Yêu cầu:</Text>
+        </View>
+        <View style={styles.requirementDetailContainer}>
+          <Ionicons
+            name="ellipse"
+            size={8}
+            color="black"
+            style={styles.bulletIcon}
+          />
+          <Text style={styles.requirementDetail}>
+            Giấy phép lái xe còn hạn. Bằng lái bắt buộc có dấu mộc
+          </Text>
+        </View>
+        <View style={styles.requirementDetailContainer}>
+          <Ionicons
+            name="ellipse"
+            size={8}
+            color="black"
+            style={styles.bulletIcon}
+          />
+          <Text style={styles.requirementDetail}>
+            Mặt trước là mặt có ảnh và thông tin cá nhân (Tên, ngày tháng năm
+            sinh, địa chỉ...)
+          </Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.requirementContainer}>
+          <Ionicons name="close-circle" size={24} color="red" />
+          <Text style={styles.requirementTextTitle}>
+            Hãy đảm bảo tài liệu không:
+          </Text>
+        </View>
+        <View style={styles.requirementDetailContainer}>
+          <Ionicons
+            name="ellipse"
+            size={8}
+            color="black"
+            style={styles.bulletIcon}
+          />
+          <Text style={styles.requirementDetail}>
+            Giấy tờ chụp đầy đủ các thông tin, không mất góc
+          </Text>
+        </View>
+        <View style={styles.requirementDetailContainer}>
+          <Ionicons
+            name="ellipse"
+            size={8}
+            color="black"
+            style={styles.bulletIcon}
+          />
+          <Text style={styles.requirementDetail}>
+            Không chụp ảnh qua màn hình hoặc sử dụng giấy tờ Scan. Ảnh chụp rõ
+            nét không lóa sáng
+          </Text>
+        </View>
+        <View style={styles.requirementDetailContainer}>
+          <Ionicons
+            name="ellipse"
+            size={8}
+            color="black"
+            style={styles.bulletIcon}
+          />
+          <Text style={styles.requirementDetail}>
+            Hình ảnh phải là bằng lái xe gốc, không chấp nhận giấy hẹn trả kết
+            quả bằng lái xe hoặc biên lai thu giữ bằng lái xe.
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.button} onPress={nextStep}>
+          <Text style={styles.buttonText}>Tải hồ sơ lên</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
+      {step === 1 && <Step1 />}
       {step > 1 && (
         <TouchableOpacity style={styles.backButton} onPress={prevStep}>
           <EvilIcons name="arrow-left" size={40} color="#12aae2" />
           <Text style={styles.backButtonText}>{getStepTitle()}</Text>
         </TouchableOpacity>
       )}
-      {step === 1 && (
+      {step === 2 && (
         <ImageBackground
           source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
         >
           <View style={styles.stepContainer}>
             <ScrollView contentContainerStyle={styles.scrollview}>
-              <Text style={styles.stepTitle}>{getStepTitle()}</Text>
+              <View style={styles.imageUploadContainer}>
+                {selectedImage ? (
+                  <TouchableOpacity
+                    onPress={handlePickImage}
+                    style={styles.imagePreviewContainer}
+                  >
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={styles.imagePreview}
+                    />
+                    <Text style={styles.changeImageText}>Thay đổi ảnh</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.iconContainer}>
+                    <TouchableOpacity
+                      onPress={handlePickImage}
+                      style={styles.iconButton}
+                    >
+                      <Ionicons name="image" size={30} color="#12aae2" />
+                      <Text style={styles.iconText}>Tải lên</Text>
+                    </TouchableOpacity>
+                    <View style={styles.separator} />
+                    <TouchableOpacity
+                      onPress={handleCaptureLicense}
+                      style={styles.iconButton}
+                    >
+                      <Ionicons name="camera" size={30} color="#12aae2" />
+                      <Text style={styles.iconText}>Chụp ảnh</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+              {imageError ? (
+                <Text style={styles.errorText}>{imageError}</Text>
+              ) : null}
+
+              <Text style={styles.label}>
+                Số giấy phép <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={licenseNumber}
+                onChangeText={setLicenseNumber}
+                placeholder="Nhập số giấy phép"
+              />
+              {licenseNumberError ? (
+                <Text style={styles.errorText}>{licenseNumberError}</Text>
+              ) : null}
+              <Text style={styles.label}>
+                Ngày cấp (Ví dụ: 01/01/2000){" "}
+                <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={issueDate}
+                onChangeText={(text) => setIssueDate(formatDateString(text))}
+                placeholder="Nhập ngày cấp"
+                keyboardType="numeric"
+              />
+              {issueDateError ? (
+                <Text style={styles.errorText}>{issueDateError}</Text>
+              ) : null}
+              <Text style={styles.label}>
+                Nơi cấp <Text style={styles.required}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={issuedBy}
+                onChangeText={setIssuedBy}
+                placeholder="Nhập nơi cấp"
+              />
+              {issuedByError ? (
+                <Text style={styles.errorText}>{issuedByError}</Text>
+              ) : null}
+              <Text style={styles.label}>
+                Hạng <Text style={styles.required}>*</Text>
+              </Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={licenseClass}
+                  style={styles.picker}
+                  onValueChange={handleLicenseClassChange}
+                >
+                  <Picker.Item label="Chọn hạng" value="" />
+                  <Picker.Item label="Bằng lái A1" value="A1" />
+                  <Picker.Item label="Bằng lái B1" value="B1" />
+                  <Picker.Item label="Bằng lái B2" value="B2" />
+                </Picker>
+              </View>
+
+              <Modal visible={isLoading} transparent>
+                <View style={styles.loadingModalContainer}>
+                  <ActivityIndicator
+                    size="large"
+                    color="#12aae2"
+                    style={styles.loadingIndicator}
+                  />
+                </View>
+              </Modal>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  !isStep2Valid ? styles.disabledButton : {},
+                ]}
+                onPress={nextStep}
+                disabled={!isStep2Valid}
+              >
+                <Text style={styles.buttonText}>Tiếp tục</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </ImageBackground>
+      )}
+
+      {step === 3 && (
+        <ImageBackground
+          source={require("../assets/images/bg_register.png")}
+          style={styles.bgContainer}
+        >
+          <View style={styles.stepContainer}>
+            <Text style={styles.titleAvatar}>Vui lòng chụp rõ khuôn mặt</Text>
+            <View style={styles.avatarContainer}>
+              {capturedImage ? (
+                <Image
+                  source={{ uri: capturedImage }}
+                  style={styles.avatarUpload}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  {/* <Ionicons name="person" size={50} color="#ccc" /> */}
+
+                  <Image
+                    source={{
+                      uri: "https://res.cloudinary.com/dtl7s29go/image/upload/v1719893155/soic9qbgyyxlso3uhmcr.png",
+                    }}
+                    style={styles.avatarUpload}
+                  />
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.cameraButton}
+                onPress={handleCaptureAvatar}
+              >
+                <Ionicons name="camera" size={30} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.requirementContainer}>
+              <Ionicons name="checkmark-circle" size={24} color="green" />
+              <Text style={styles.requirementTextTitle}>Yêu cầu:</Text>
+            </View>
+            <View style={styles.requirementDetailContainer}>
+              <Ionicons
+                name="ellipse"
+                size={8}
+                color="black"
+                style={styles.bulletIcon}
+              />
+              <Text style={styles.requirementDetail}>
+                Hình ảnh khuôn mặt phải trùng khớp với khuôn mặt trên thông tin
+                bằng lái xe
+              </Text>
+            </View>
+            <View style={styles.requirementDetailContainer}>
+              <Ionicons
+                name="ellipse"
+                size={8}
+                color="black"
+                style={styles.bulletIcon}
+              />
+              <Text style={styles.requirementDetail}>
+                Không đội nón, không đeo kính râm, không đeo mặt nạ hay bất kì
+                vật cản che khuất khuôn mặt
+              </Text>
+            </View>
+            <View style={styles.requirementDetailContainer}>
+              <Ionicons
+                name="ellipse"
+                size={8}
+                color="black"
+                style={styles.bulletIcon}
+              />
+              <Text style={styles.requirementDetail}>
+                Không nhắm mắt hoặc nheo mắt khi chụp hình.
+              </Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.requirementContainer}>
+              <Ionicons name="close-circle" size={24} color="red" />
+              <Text style={styles.requirementTextTitle}>
+                Hãy đảm bảo hình ảnh khuôn mặt không:
+              </Text>
+            </View>
+            <View style={styles.requirementDetailContainer}>
+              <Ionicons
+                name="ellipse"
+                size={8}
+                color="black"
+                style={styles.bulletIcon}
+              />
+              <Text style={styles.requirementDetail}>
+                Hình ảnh phải chụp rõ nét toàn bộ khuôn mặt, không lóa sáng.
+              </Text>
+            </View>
+            <View style={styles.requirementDetailContainer}>
+              <Ionicons
+                name="ellipse"
+                size={8}
+                color="black"
+                style={styles.bulletIcon}
+              />
+              <Text style={styles.requirementDetail}>
+                Không chụp ảnh qua màn hình khác.
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.button,
+                !isImageUploaded ? styles.disabledButton : {},
+              ]}
+              onPress={nextStep}
+              disabled={!isImageUploaded}
+            >
+              <Text style={styles.buttonText}>Tiếp tục</Text>
+            </TouchableOpacity>
+          </View>
+        </ImageBackground>
+      )}
+
+      {step === 4 && (
+        <ImageBackground
+          source={require("../assets/images/bg_register.png")}
+          style={styles.bgContainer}
+        >
+          <View style={styles.stepContainer}>
+            <ScrollView contentContainerStyle={styles.scrollview}>
               <Text style={styles.label}>
                 Nhập số điện thoại <Text style={styles.required}>*</Text>
               </Text>
@@ -342,14 +765,15 @@ export default function Signup() {
                 <Text style={styles.errorText}>{nameError}</Text>
               ) : null}
               <Text style={styles.label}>
-                Ngày sinh (Ví dụ: 01-01-1970)
+                Ngày sinh (Ví dụ: 01/01/1970)
                 <Text style={styles.required}> *</Text>
               </Text>
               <TextInput
                 style={styles.input}
                 value={birthday}
-                onChangeText={setBirthday}
-                placeholder="Nhập ngày sinh (dd-mm-yyyy)"
+                onChangeText={(text) => setBirthday(formatDateString(text))}
+                placeholder="Nhập ngày sinh (dd/mm/yyyy)"
+                keyboardType="numeric"
               />
               {birthdayError ? (
                 <Text style={styles.errorText}>{birthdayError}</Text>
@@ -382,119 +806,7 @@ export default function Signup() {
         </ImageBackground>
       )}
 
-      {step === 2 && (
-        <ImageBackground
-          source={require("../assets/images/bg_register.png")}
-          style={styles.bgContainer}
-        >
-          <View style={styles.stepContainer}>
-            <ScrollView contentContainerStyle={styles.scrollview}>
-              <Text style={styles.label}>
-                Số giấy phép <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={licenseNumber}
-                onChangeText={setLicenseNumber}
-                placeholder="Nhập số giấy phép"
-              />
-              {licenseNumberError ? (
-                <Text style={styles.errorText}>{licenseNumberError}</Text>
-              ) : null}
-              <Text style={styles.label}>
-                Ngày cấp (dd/mm/yyyy) <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={issueDate}
-                onChangeText={setIssueDate}
-                placeholder="Nhập ngày cấp"
-              />
-              {issueDateError ? (
-                <Text style={styles.errorText}>{issueDateError}</Text>
-              ) : null}
-              <Text style={styles.label}>
-                Nơi cấp <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={styles.input}
-                value={issuedBy}
-                onChangeText={setIssuedBy}
-                placeholder="Nhập nơi cấp"
-              />
-              {issuedByError ? (
-                <Text style={styles.errorText}>{issuedByError}</Text>
-              ) : null}
-              <Text style={styles.label}>
-                Hạng <Text style={styles.required}>*</Text>
-              </Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={licenseClass}
-                  style={styles.picker}
-                  onValueChange={handleLicenseClassChange}
-                >
-                  <Picker.Item label="Chọn hạng" value="" />
-                  <Picker.Item label="Bằng lái A1" value="A1" />
-                  <Picker.Item label="Bằng lái B1" value="B1" />
-                  <Picker.Item label="Bằng lái B2" value="B2" />
-                </Picker>
-              </View>
-              <TouchableOpacity
-                style={styles.imagePicker}
-                onPress={handlePickImage}
-              >
-                <Text style={styles.imagePickerText}>Chọn ảnh</Text>
-              </TouchableOpacity>
-              {selectedImage && (
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={styles.imagePreview}
-                />
-              )}
-              {imageError ? (
-                <Text style={styles.errorText}>{imageError}</Text>
-              ) : null}
-
-              <Modal visible={isLoading} transparent>
-                <View style={styles.loadingModalContainer}>
-                  <ActivityIndicator
-                    size="large"
-                    color="#12aae2"
-                    style={styles.loadingIndicator}
-                  />
-                </View>
-              </Modal>
-              <TouchableOpacity
-                style={[
-                  styles.button,
-                  !isStep2Valid ? styles.disabledButton : {},
-                ]}
-                onPress={nextStep}
-                disabled={!isStep2Valid}
-              >
-                <Text style={styles.buttonText}>Tiếp tục</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </ImageBackground>
-      )}
-
-      {step === 3 && (
-        <ImageBackground
-          source={require("../assets/images/bg_register.png")}
-          style={styles.bgContainer}
-        >
-          <View style={styles.stepContainer}>
-            <Text style={styles.label}>Chụp hình mặt người đăng ký:</Text>
-            <TouchableOpacity style={styles.button} onPress={nextStep}>
-              <Text style={styles.buttonText}>Tiếp tục</Text>
-            </TouchableOpacity>
-          </View>
-        </ImageBackground>
-      )}
-
-      {step === 4 && (
+      {step === 5 && (
         <ImageBackground
           source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
@@ -531,7 +843,7 @@ export default function Signup() {
         </ImageBackground>
       )}
 
-      {step === 5 && (
+      {step === 6 && (
         <ImageBackground
           source={require("../assets/images/bg_register.png")}
           style={styles.bgContainer}
@@ -551,20 +863,32 @@ export default function Signup() {
                 </View>
               </TouchableOpacity>
               {showDriverProfile && (
-                <View style={styles.driverProfile}>
-                  <View style={styles.infoRow}>
-                    <Ionicons name="phone-portrait" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>
-                      Số điện thoại: {phoneNumber}
-                    </Text>
+                <View style={styles.card}>
+                  <View style={styles.row}>
+                    <View style={styles.avatarContainer}>
+                      {avatar ? (
+                        <Image source={{ uri: avatar }} style={styles.avatar} />
+                      ) : (
+                        <Ionicons name="person" size={50} color="#ccc" />
+                      )}
+                    </View>
+                    <View style={styles.column}>
+                      <Text style={styles.infoHeadTextProfile}>{name}</Text>
+                      <Text style={styles.infoLastTextProfile}>
+                        {formatBirthday(birthday)}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.infoRow}>
-                    <EvilIcons name="user" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>Tên: {name}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <EvilIcons name="location" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>Địa chỉ: {address}</Text>
+
+                  <View style={styles.infoRowProfile}>
+                    <View style={styles.infoColumn}>
+                      <Text style={styles.headText}>Số điện thoại</Text>
+                      <Text style={styles.lastText}>{phoneNumber}</Text>
+                    </View>
+                    <View style={styles.infoColumn}>
+                      <Text style={styles.headText}>Địa chỉ</Text>
+                      <Text style={styles.lastText}>{address}</Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -582,30 +906,39 @@ export default function Signup() {
                 </View>
               </TouchableOpacity>
               {showDriverDegree && (
-                <View style={styles.driverDegree}>
+                <View style={styles.card}>
                   {selectedImage && (
                     <Image
                       source={{ uri: selectedImage }}
-                      style={styles.imagePreview}
+                      style={styles.imagePreviewDegree}
                     />
                   )}
-                  <View style={styles.infoRow}>
-                    <EvilIcons name="credit-card" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>
-                      Số giấy phép: {licenseNumber}
-                    </Text>
+
+                  <Text style={[styles.class, { marginBottom: 20 }]}>
+                    {licenseClass}
+                  </Text>
+
+                  <View style={styles.infoRowProfile}>
+                    <View style={[styles.infoColumn, { marginBottom: 30 }]}>
+                      <Text style={styles.headText}>Số giấy phép</Text>
+
+                      <Text style={styles.lastText}>{licenseNumber}</Text>
+                    </View>
+                    <View style={[styles.infoColumn, { marginLeft: 10 }]}>
+                      <Text style={styles.headText}>Có giá trị đến</Text>
+                      <Text style={styles.lastText}>Không giới hạn</Text>
+                    </View>
                   </View>
-                  <View style={styles.infoRow}>
-                    <EvilIcons name="calendar" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>Ngày cấp: {issueDate}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <EvilIcons name="location" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>Nơi cấp: {issuedBy}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Ionicons name="list" size={24} color="#12aae2" />
-                    <Text style={styles.infoText}>Hạng: {licenseClass}</Text>
+                  <View style={styles.infoRowProfile}>
+                    <View style={[styles.infoColumn]}>
+                      <Text style={styles.headText}>Ngày cấp</Text>
+
+                      <Text style={styles.lastText}>{issueDate}</Text>
+                    </View>
+                    <View style={[styles.infoColumn, { marginLeft: 10 }]}>
+                      <Text style={styles.headText}>Nơi cấp</Text>
+                      <Text style={styles.lastText}>{issuedBy}</Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -619,8 +952,16 @@ export default function Signup() {
                   </Text>
                 </View>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Text style={styles.buttonText}>Xác nhận và Đăng ký</Text>
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.disabledButton]}
+                onPress={isLoading ? undefined : handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.buttonText}>Xác nhận và Đăng ký</Text>
+                )}
               </TouchableOpacity>
               <Dialog
                 visible={dialogVisible}
@@ -652,8 +993,83 @@ const styles = StyleSheet.create({
     backgroundColor: "#e1fffe",
   },
   stepContainer: {
+    marginTop: 20,
     marginBottom: 20,
     width: "100%",
+  },
+  stepTitle: {
+    fontSize: 20,
+    marginTop: 30,
+    fontFamily: "Averta",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#12aae2",
+  },
+  imageRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    flexWrap: "wrap",
+    marginBottom: 20,
+  },
+  sampleImage: {
+    width: "45%",
+    aspectRatio: 1.5,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  sampleTitle: {
+    fontSize: 18,
+    fontFamily: "AvertaRegular",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  requirementContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  requirementTextTitle: {
+    fontFamily: "Averta",
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  requirementText: {
+    fontFamily: "AvertaRegular",
+    fontSize: 16,
+    marginLeft: 10,
+  },
+  requirementDetailContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  bulletIcon: {
+    marginRight: 10,
+  },
+  requirementDetail: {
+    fontSize: 16,
+    flex: 1,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#ccc",
+    marginVertical: 20,
+  },
+  button: {
+    padding: 15,
+    width: "100%",
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 18,
+    backgroundColor: "#12aae2",
+    marginTop: 10,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
   bgContainer: {
     marginTop: 40,
@@ -666,6 +1082,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontFamily: "Averta",
     fontSize: 16,
+    marginBottom: 10,
+  },
+  titleAvatar: {
+    marginTop: 20,
+    fontFamily: "Averta",
+    textAlign: "center",
+    fontSize: 17,
     marginBottom: 10,
   },
   input: {
@@ -684,7 +1107,7 @@ const styles = StyleSheet.create({
     top: 40,
     left: 20,
     zIndex: 10,
-    paddingBottom: 50,
+    paddingBottom: 20,
     flexDirection: "row",
     alignItems: "center",
   },
@@ -694,22 +1117,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "#12aae2",
   },
-  button: {
-    padding: 15,
-    width: "100%",
-    paddingVertical: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 18,
-    backgroundColor: "#12aae2",
-    marginTop: 10, // Add margin to the button
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+
   footer: {
     flexDirection: "row",
     alignItems: "center",
@@ -738,23 +1146,63 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
   },
-  imagePicker: {
-    backgroundColor: "#12aae2",
-    padding: 10,
-    borderRadius: 5,
+  imageUploadContainer: {
+    width: "100%",
+    height: 200,
+    marginTop: 30,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
+    backgroundColor: "#f9f9f9",
   },
-  imagePickerText: {
-    color: "#fff",
-    fontFamily: "Averta",
-    fontSize: 16,
+  imagePreviewContainer: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   imagePreview: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 10,
+  },
+  imagePreviewDegree: {
     width: "100%",
     height: 200,
     marginBottom: 20,
     borderRadius: 5,
+  },
+  changeImageText: {
+    position: "absolute",
+    bottom: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    color: "white",
+    padding: 5,
+    borderRadius: 5,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    width: "100%",
+  },
+  iconButton: {
+    alignItems: "center",
+  },
+  iconText: {
+    color: "#12aae2",
+    fontFamily: "Averta",
+    fontSize: 16,
+    marginTop: 5,
+  },
+  separator: {
+    width: 1,
+    height: 50,
+    backgroundColor: "#ccc",
+    marginHorizontal: 20,
   },
   submitButton: {
     backgroundColor: "#12aae2",
@@ -844,11 +1292,87 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#12aae2",
   },
-  stepTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#eee",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
+    backgroundColor: "#B2DEFF",
+    padding: 20,
+    borderRadius: 10,
     marginBottom: 20,
-    color: "#12aae2",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  column: {
+    flexDirection: "column",
+    marginLeft: 10,
+  },
+  avatarContainer: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarUpload: { width: 200, height: 200, borderRadius: 100 },
+  infoHeadTextProfile: {
+    fontSize: 16,
+    fontFamily: "Averta",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  infoLastTextProfile: {
+    fontSize: 16,
+    fontFamily: "AvertaRegular",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  infoRowProfile: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  class: { fontFamily: "Averta", fontSize: 30 },
+  infoColumn: {
+    flex: 1,
+    alignItems: "center",
+  },
+  headText: {
+    fontSize: 16,
+    fontFamily: "AvertaRegular",
+    marginBottom: 5,
+    textAlign: "left",
+    width: "100%",
+  },
+  lastText: {
+    fontSize: 16,
+    fontFamily: "Averta",
+    textAlign: "left",
+    width: "100%",
+  },
+  cameraButton: {
+    position: "absolute",
+    bottom: 10,
+    right: 90,
+    backgroundColor: "#12aae2",
+    borderRadius: 20,
+    padding: 5,
   },
 });

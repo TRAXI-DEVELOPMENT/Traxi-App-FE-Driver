@@ -28,3 +28,15 @@ export function formatBirthday(input: string): string {
   }
   return parts.join(" / ");
 }
+
+export const formatDateString = (text: string) => {
+  // Remove all non-digit characters
+  const cleaned = ("" + text).replace(/\D/g, "");
+
+  // Format the string as dd/mm/yyyy
+  const match = cleaned.match(/^(\d{0,2})(\d{0,2})(\d{0,4})$/);
+  if (match) {
+    return [match[1], match[2], match[3]].filter(Boolean).join("/");
+  }
+  return text;
+};

@@ -337,6 +337,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 5,
   },
+
   submitButton: {
     backgroundColor: "#12aae2",
     fontFamily: "Averta",

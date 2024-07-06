@@ -4,6 +4,7 @@ import axiosInstance from "@/utils/axios";
 interface ApplyJobRequest {
   Fullname: string;
   Phone: string;
+  ImageUrl: string;
   Address: string;
   Password: string;
   Birthday: string;
