@@ -402,13 +402,13 @@ export default function Signup() {
         <Text style={styles.stepTitle}>Hướng dẫn tải lên tài liệu</Text>
         <View style={styles.imageRow}>
           <Image
-            source={{
-              uri: "https://img.upanh.tv/2024/07/12/new_sample.md.jpg",
-            }}
+            source={require("../assets/images/new_sample.png")}
             style={styles.sampleImage}
           />
           <Image
-            source={{ uri: "https://img.upanh.tv/2024/07/12/old_sample.jpg" }}
+            source={{
+              uri: "https://res.cloudinary.com/dtl7s29go/image/upload/v1720818096/erhmdbqydiayhsk8psjz.jpg",
+            }}
             style={styles.sampleImage}
           />
         </View>
