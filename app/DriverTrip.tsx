@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Button,
   TouchableOpacity,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
@@ -19,11 +18,21 @@ import { getCustomerInfo } from "@/api/Customer/Customer"; // Import hàm getCus
 import { CustomerInfo } from "@/types/Customer";
 import { completeTrip, getDetailTrip } from "@/api/Trip/Trip";
 import { TripDetail } from "@/types/Trip";
+import Menu from "@/components/Menu";
+import BeforeTripModal from "@/components/TripModal/BeforeTripModal";
+import AfterTripModal from "@/components/TripModal/AfterTripModal";
+import { RootStackParamList } from "@/types/Types";
+import { StackNavigationProp } from "@react-navigation/native";
 
 interface LatLng {
   latitude: number;
   longitude: number;
 }
+
+type DriverTripNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  "DriverTrip"
+>;
 
 const DriverTrip = () => {
   const { tripData } = useLocalSearchParams();
@@ -38,7 +47,23 @@ const DriverTrip = () => {
     null
   );
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<DriverTripNavigationProp>();
+
+  const [modalType, setModalType] = useState("");
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const openModal = (type: string) => {
+    setModalType(type);
+    setMenuVisible(false);
+  };
+
+  const closeModal = () => {
+    setModalType("");
+  };
 
   useEffect(() => {
     const fetchPosition = async () => {
@@ -142,8 +167,12 @@ const DriverTrip = () => {
   const handleCompleteTrip = async () => {
     try {
       const result = await completeTrip(trip.TripId);
-      console.log("Chuyến đi hoàn thành:", result);
-      navigation.navigate("history" as never);
+      if (result) {
+        console.log("Chuyến đi hoàn thành:", result);
+        navigation.navigate("TripCompletion", { tripResult: result });
+      } else {
+        console.error("Dữ liệu trả về không hợp lệ:", result);
+      }
     } catch (error) {
       console.error("Lỗi khi hoàn thành chuyến đi:", error);
     }
@@ -165,6 +194,13 @@ const DriverTrip = () => {
 
   return (
     <View style={styles.container}>
+      <Menu
+        toggleMenu={toggleMenu}
+        openModal={openModal}
+        menuVisible={menuVisible}
+        modalType={modalType}
+        closeModal={closeModal}
+      />
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -178,19 +214,43 @@ const DriverTrip = () => {
             0.05,
         }}
       >
-       <Marker coordinate={originLatLng} title="Điểm đón" description={truncateText(trip.StartLocation, 30)}>
-          <View style={{ width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}>
+        <Marker
+          coordinate={originLatLng}
+          title="Điểm đón"
+          description={truncateText(trip.StartLocation, 30)}
+        >
+          <View
+            style={{
+              width: 50,
+              height: 50,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <Image
-              source={{ uri: 'https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_638/v1682350380/assets/2f/29d010-64eb-47ac-b6bb-97503a838259/original/UberX-%281%29.png' }} // Sử dụng URI cho icon của điểm đón
-              style={{ width: 60, height: 60 }} 
+              source={{
+                uri: "https://www.uber-assets.com/image/upload/f_auto,q_auto:eco,c_fill,w_956,h_638/v1682350380/assets/2f/29d010-64eb-47ac-b6bb-97503a838259/original/UberX-%281%29.png",
+              }}
+              style={{ width: 60, height: 60 }}
               resizeMode="contain"
             />
           </View>
         </Marker>
-        <Marker coordinate={destinationLatLng} title="Điểm đến" description={truncateText(trip.EndLocation, 30)}>
-          <View style={{ width: 50, height: 50, justifyContent: 'center', alignItems: 'center' }}>
+        <Marker
+          coordinate={destinationLatLng}
+          title="Điểm đến"
+          description={truncateText(trip.EndLocation, 30)}
+        >
+          <View
+            style={{
+              width: 50,
+              height: 50,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <Image
-              source={{ uri: 'https://img.upanh.tv/2024/07/12/origin.png' }} 
+              source={{ uri: "https://img.upanh.tv/2024/07/12/origin.png" }}
               style={{ width: 40, height: 40 }}
               resizeMode="contain"
             />
@@ -317,6 +377,22 @@ const DriverTrip = () => {
           <Text style={styles.completeButtonText}>Hoàn thành chuyến đi</Text>
         </TouchableOpacity>
       </ScrollView>
+      {modalType === "before" && (
+        <BeforeTripModal
+          visible={true}
+          onClose={closeModal}
+          vehicleId={vehicleInfo?.Id}
+          tripId={trip?.Id}
+        />
+      )}
+      {modalType === "after" && (
+        <AfterTripModal
+          visible={true}
+          onClose={closeModal}
+          vehicleId={vehicleInfo?.Id}
+          tripId={trip?.Id}
+        />
+      )}
     </View>
   );
 };
@@ -371,21 +447,22 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     flex: 1,
-    marginVertical: 8,
+    top: -7,
     justifyContent: "flex-end",
+    marginVertical: 8,
   },
   ownerAvatar: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    marginRight: 8,
   },
   ownerName: {
     fontSize: 12,
+    textAlign: "center",
     fontWeight: "bold",
   },
   ownerPhone: {
-    fontSize: 10,
+    fontSize: 12,
     textAlign: "center",
     color: "gray",
   },

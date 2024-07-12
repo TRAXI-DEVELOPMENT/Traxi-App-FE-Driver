@@ -40,6 +40,10 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="InnerCity" options={{ headerShown: false }} />
           <Stack.Screen name="DriverTrip" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="TripCompletion"
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="+not-found" />
         </Stack>
       </ThemeProvider>
