@@ -27,6 +27,7 @@ interface TripCardProps {
 const TripCard: React.FC<TripCardProps> = ({ item }) => {
   const [tripDetails, setTripDetails] = useState<TripDetails>();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const router = useRouter();
 
@@ -44,6 +45,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
   }, [item.trip.Id]);
 
   const handleAcceptTrip = async () => {
+    setIsButtonDisabled(true);
     try {
       const userInfo = await AsyncStorage.getItem("USER_INFO");
       const driverInfo = userInfo ? JSON.parse(userInfo) : null;
@@ -56,6 +58,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
       });
     } catch (error) {
       console.error("Error accepting trip:", error);
+      setIsButtonDisabled(false); // Re-enable button if there's an error
     }
   };
 
@@ -181,7 +184,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
         </View>
       </View>
 
-      <Button title="Nhận cuốc" onPress={handleAcceptTrip} />
+      <Button title="Nhận cuốc" onPress={handleAcceptTrip} disabled={isButtonDisabled} />
     </View>
   );
 };

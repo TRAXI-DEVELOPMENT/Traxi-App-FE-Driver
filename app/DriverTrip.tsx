@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   TouchableOpacity,
+  Linking,
 } from "react-native";
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { useLocalSearchParams, useNavigation } from "expo-router";
@@ -23,6 +24,7 @@ import BeforeTripModal from "@/components/TripModal/BeforeTripModal";
 import AfterTripModal from "@/components/TripModal/AfterTripModal";
 import { RootStackParamList } from "@/types/Types";
 import { StackNavigationProp } from "@react-navigation/native";
+import * as SplashScreen from "expo-splash-screen";
 
 interface LatLng {
   latitude: number;
@@ -51,6 +53,8 @@ const DriverTrip = () => {
 
   const [modalType, setModalType] = useState("");
   const [menuVisible, setMenuVisible] = useState(false);
+  const [isCompleteButtonDisabled, setIsCompleteButtonDisabled] =
+    useState(false);
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -64,6 +68,16 @@ const DriverTrip = () => {
   const closeModal = () => {
     setModalType("");
   };
+
+  useEffect(() => {
+    SplashScreen.preventAutoHideAsync();
+  }, []);
+
+  useEffect(() => {
+    if (originLatLng && destinationLatLng) {
+      SplashScreen.hideAsync();
+    }
+  }, [originLatLng, destinationLatLng]);
 
   useEffect(() => {
     const fetchPosition = async () => {
@@ -165,6 +179,7 @@ const DriverTrip = () => {
   }, [trip.TripId]);
 
   const handleCompleteTrip = async () => {
+    setIsCompleteButtonDisabled(true);
     try {
       const result = await completeTrip(trip.TripId);
       if (result) {
@@ -172,9 +187,11 @@ const DriverTrip = () => {
         navigation.navigate("TripCompletion", { tripResult: result });
       } else {
         console.error("Dữ liệu trả về không hợp lệ:", result);
+        setIsCompleteButtonDisabled(false);
       }
     } catch (error) {
       console.error("Lỗi khi hoàn thành chuyến đi:", error);
+      setIsCompleteButtonDisabled(false);
     }
   };
 
@@ -184,12 +201,14 @@ const DriverTrip = () => {
       : text;
   };
 
+  const handleCallCustomer = () => {
+    if (customerInfo?.Phone) {
+      Linking.openURL(`tel:${customerInfo.Phone}`);
+    }
+  };
+
   if (!originLatLng || !destinationLatLng) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    return null;
   }
 
   return (
@@ -277,18 +296,24 @@ const DriverTrip = () => {
               <Text style={styles.vehicleMode}>{vehicleInfo?.Mode}</Text>
             </View>
 
-            <View style={styles.ownerInfo}>
-              {customerInfo && (
-                <Image
-                  source={{ uri: customerInfo.ImageURL }}
-                  style={styles.ownerAvatar}
-                />
-              )}
-              <View>
-                <Text style={styles.ownerName}>{customerInfo?.FulllName}</Text>
-
-                <Text style={styles.ownerPhone}>{customerInfo?.Phone}</Text>
-              </View>
+            <View style={styles.ownerInfoContainer}>
+              <TouchableOpacity
+                style={styles.ownerInfo}
+                onPress={handleCallCustomer}
+              >
+                {customerInfo && (
+                  <Image
+                    source={{ uri: customerInfo.ImageURL }}
+                    style={styles.ownerAvatar}
+                  />
+                )}
+                <View>
+                  <Text style={styles.ownerName}>
+                    {customerInfo?.FulllName}
+                  </Text>
+                  <Text style={styles.ownerPhone}>{customerInfo?.Phone}</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -373,6 +398,7 @@ const DriverTrip = () => {
         <TouchableOpacity
           style={styles.completeButton}
           onPress={handleCompleteTrip}
+          disabled={isCompleteButtonDisabled}
         >
           <Text style={styles.completeButtonText}>Hoàn thành chuyến đi</Text>
         </TouchableOpacity>
@@ -443,13 +469,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
   },
-  ownerInfo: {
+  ownerInfoContainer: {
     flexDirection: "column",
     alignItems: "center",
     flex: 1,
     top: -7,
     justifyContent: "flex-end",
     marginVertical: 8,
+  },
+  ownerInfo: {
+    alignItems: "center",
   },
   ownerAvatar: {
     width: 50,

@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   menuButton: {
     backgroundColor: "white",
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 100,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
