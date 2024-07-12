@@ -21,6 +21,11 @@
         "foregroundImage": "./assets/images/Traxi_logo_app.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAXEFa6r6g8ZRWEfvx1bToCuWSU-U8elhw"
+        }
+      },
       "package": "com.id09st.Traxi_App_Driver_RN"
     },
     "web": {

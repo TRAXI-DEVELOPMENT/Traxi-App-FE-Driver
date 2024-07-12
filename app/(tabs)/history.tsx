@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ScrollView,
   View,
@@ -20,6 +20,7 @@ import {
   formatTime,
   roundToFirstDecimal,
 } from "@/utils/format";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function History() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,43 +31,48 @@ export default function History() {
   }>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTripHistory = async () => {
-      try {
-        const userInfo = await AsyncStorage.getItem("USER_INFO");
-        const driverInfo = userInfo ? JSON.parse(userInfo) : null;
-        const driverId = driverInfo?.id;
+  const fetchTripHistory = async () => {
+    try {
+      const userInfo = await AsyncStorage.getItem("USER_INFO");
+      const driverInfo = userInfo ? JSON.parse(userInfo) : null;
+      const driverId = driverInfo?.id;
 
-        const data = await getTripDriver(driverId);
-        if (data && data.result) {
-          // Sắp xếp các chuyến đi theo thời gian gần nhất
-          const sortedRides = data.result.sort((a: Trip, b: Trip) => {
-            return new Date(b.BookingDate).getTime() - new Date(a.BookingDate).getTime();
-          });
-          setRides(sortedRides);
-
-          const details = await Promise.all(
-            sortedRides.map(async (ride: Trip) => {
-              const detailData = await getTripDetail(ride.Id);
-              return { [ride.Id]: detailData.result };
-            })
+      const data = await getTripDriver(driverId);
+      if (data && data.result) {
+        // Sắp xếp các chuyến đi theo thời gian gần nhất
+        const sortedRides = data.result.sort((a: Trip, b: Trip) => {
+          return (
+            new Date(b.BookingDate).getTime() -
+            new Date(a.BookingDate).getTime()
           );
+        });
+        setRides(sortedRides);
 
-          const detailsObject = details.reduce(
-            (acc, detail) => ({ ...acc, ...detail }),
-            {}
-          );
-          setRideDetails(detailsObject);
-        }
-      } catch (error) {
-        console.error("Error fetching trip history:", error);
-      } finally {
-        setIsLoading(false);
+        const details = await Promise.all(
+          sortedRides.map(async (ride: Trip) => {
+            const detailData = await getTripDetail(ride.Id);
+            return { [ride.Id]: detailData.result };
+          })
+        );
+
+        const detailsObject = details.reduce(
+          (acc, detail) => ({ ...acc, ...detail }),
+          {}
+        );
+        setRideDetails(detailsObject);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching trip history:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchTripHistory();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchTripHistory();
+    }, [])
+  );
 
   const handleCardPress = (ride: Trip) => {
     setSelectedRide(rideDetails[ride.Id]);

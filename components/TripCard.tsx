@@ -8,7 +8,7 @@ import {
   Button,
 } from "react-native";
 import { TripDetails, TripItem } from "@/types/Trip";
-import { getDetailTrip } from "@/api/Trip/Trip";
+import { applyDriver, getDetailTrip } from "@/api/Trip/Trip";
 import { getCustomerInfo } from "@/api/Customer/Customer";
 import { CustomerInfo } from "@/types/Customer";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
@@ -17,6 +17,8 @@ import {
   formatTime,
   roundToFirstDecimal,
 } from "@/utils/format";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
 interface TripCardProps {
   item: TripItem;
@@ -25,6 +27,8 @@ interface TripCardProps {
 const TripCard: React.FC<TripCardProps> = ({ item }) => {
   const [tripDetails, setTripDetails] = useState<TripDetails>();
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>();
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTripDetails = async () => {
@@ -38,6 +42,22 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
 
     fetchTripDetails();
   }, [item.trip.Id]);
+
+  const handleAcceptTrip = async () => {
+    try {
+      const userInfo = await AsyncStorage.getItem("USER_INFO");
+      const driverInfo = userInfo ? JSON.parse(userInfo) : null;
+
+      const driverId = driverInfo?.id;
+      const response = await applyDriver(driverId, item.trip.Id);
+      router.push({
+        pathname: "/DriverTrip",
+        params: { tripData: JSON.stringify(response.result) },
+      });
+    } catch (error) {
+      console.error("Error accepting trip:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchCustomerInfo = async () => {
@@ -161,12 +181,7 @@ const TripCard: React.FC<TripCardProps> = ({ item }) => {
         </View>
       </View>
 
-      <Button
-        title="Nhận cuốc"
-        onPress={() => {
-          /* handle accept trip */
-        }}
-      />
+      <Button title="Nhận cuốc" onPress={handleAcceptTrip} />
     </View>
   );
 };
