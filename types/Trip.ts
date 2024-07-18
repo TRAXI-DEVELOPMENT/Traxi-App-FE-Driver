@@ -16,7 +16,7 @@ export interface Trip {
 export interface TripDetails {
   TripId: string;
   BookingDate: string;
-  Status: (string | null)[];
+  Status: string;
   UpDate: string;
   CustomerId: string;
   DriverId: string;

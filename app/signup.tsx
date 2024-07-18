@@ -402,14 +402,22 @@ export default function Signup() {
         <Text style={styles.stepTitle}>Hướng dẫn tải lên tài liệu</Text>
         <View style={styles.imageRow}>
           <Image
-            source={require("../assets/images/new_sample.png")}
+            source={{
+              uri: "https://res.cloudinary.com/dtl7s29go/image/upload/v1720818071/eo7se5dpgdg0n0nrqm0z.jpg",
+            }}
             style={styles.sampleImage}
+            onError={(error) =>
+              console.error("Error loading image:", error.nativeEvent.error)
+            }
           />
           <Image
             source={{
               uri: "https://res.cloudinary.com/dtl7s29go/image/upload/v1720818096/erhmdbqydiayhsk8psjz.jpg",
             }}
             style={styles.sampleImage}
+            onError={(error) =>
+              console.error("Error loading image:", error.nativeEvent.error)
+            }
           />
         </View>
         <Text style={styles.sampleTitle}>Sample Document</Text>
@@ -1015,6 +1023,7 @@ const styles = StyleSheet.create({
   },
   sampleImage: {
     width: "45%",
+    height: "100%",
     aspectRatio: 1.5,
     borderRadius: 10,
     marginBottom: 10,

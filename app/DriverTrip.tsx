@@ -17,7 +17,7 @@ import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { formatTime, roundToFirstDecimal } from "@/utils/format";
 import { getCustomerInfo } from "@/api/Customer/Customer"; // Import hàm getCustomerInfo
 import { CustomerInfo } from "@/types/Customer";
-import { completeTrip, getDetailTrip } from "@/api/Trip/Trip";
+import axiosInstance, { completeTrip, getDetailTrip } from "@/api/Trip/Trip";
 import { TripDetail } from "@/types/Trip";
 import Menu from "@/components/Menu";
 import BeforeTripModal from "@/components/TripModal/BeforeTripModal";
@@ -105,7 +105,10 @@ const DriverTrip = () => {
   useEffect(() => {
     if (originLatLng && destinationLatLng) {
       const fetchRoute = async () => {
-        const apiKey = "AIzaSyAXEFa6r6g8ZRWEfvx1bToCuWSU-U8elhw";
+        const response = await axiosInstance.get(
+          "https://66940638c6be000fa07df004.mockapi.io/mapapikey"
+        );
+        const apiKey = response.data[0].mapKey;
         const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originLatLng.latitude},${originLatLng.longitude}&destination=${destinationLatLng.latitude},${destinationLatLng.longitude}&key=${apiKey}`;
 
         try {
@@ -511,8 +514,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   detailRoadContainer: {
-    marginVertical: 15,
-    paddingHorizontal: 10,
+    marginVertical: 10,
     backgroundColor: "#f9f9f9",
     borderRadius: 10,
     padding: 10,

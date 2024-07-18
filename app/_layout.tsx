@@ -7,7 +7,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { AuthProvider } from "../contexts/JWTContexts"; // Added import for AuthProvider
+import { AuthProvider } from "./JWTContexts"; // Added import for AuthProvider
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 

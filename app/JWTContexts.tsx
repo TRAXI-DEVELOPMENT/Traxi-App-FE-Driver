@@ -11,7 +11,7 @@ import { jwtDecode } from "jwt-decode";
 import { getUserInfo, setUserInfo } from "@/utils/utils";
 import { isValidToken, setSession } from "@/utils/jwt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Updates from "expo-updates";
+import { useRouter } from "expo-router";
 
 interface CustomJwtPayload {
   Id: string;
@@ -63,7 +63,6 @@ const JWTReducer = (state: State, action: Action): State => {
         isAuthenticated: false,
         user: null,
         role: null,
-        
       };
     default:
       return state;
@@ -74,6 +73,7 @@ const AuthContext = createContext<{ [key: string]: any } | null>(null);
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(JWTReducer, initialState);
+  const router = useRouter();
 
   const initialize = async () => {
     try {
@@ -133,7 +133,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       };
       setSession(token);
       setUserInfo(user);
-      Updates.reloadAsync();
+      // Updates.reloadAsync();
+      router.replace("/");
       dispatch({
         type: Types.LOGIN,
         payload: {
@@ -151,7 +152,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
     dispatch({ type: Types.LOGOUT });
     AsyncStorage.removeItem("USER_INFO").then(() => {
-      Updates.reloadAsync(); // Reload the app
+      router.replace("signin");
     });
   }, []);
 
