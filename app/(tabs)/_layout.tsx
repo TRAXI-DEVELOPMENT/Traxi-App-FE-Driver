@@ -28,10 +28,7 @@ export default function TabLayout() {
         options={{
           title: "Làm việc",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "car" : "car-outline"}
-              color={color}
-            />
+            <TabBarIcon name={focused ? "car" : "car-outline"} color={color} />
           ),
         }}
         listeners={({ navigation }) => ({
@@ -44,7 +41,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="history"
+        name="History"
         options={{
           title: "Lịch sử cuốc",
           headerShown: false,

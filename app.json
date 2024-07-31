@@ -21,19 +21,21 @@
         "foregroundImage": "./assets/images/Traxi_logo_app.png",
         "backgroundColor": "#ffffff"
       },
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAXEFa6r6g8ZRWEfvx1bToCuWSU-U8elhw"
-        }
-      },
-      "package": "com.id09st.Traxi_App_Driver_RN"
+      "package": "com.id09st.Traxi_App_Driver_RN",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/Traxi_logo_app.png"
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router"
+    ],
     "experiments": {
       "typedRoutes": true
     },
